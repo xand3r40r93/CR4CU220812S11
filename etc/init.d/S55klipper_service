@@ -74,7 +74,7 @@ update_config()
     echo "old_version: $old_version"
     echo "new_version: $new_version"
 
-    if [ $new_version -gt $old_version ]; then
+    if [ $new_version -ne $old_version ]; then
         echo "backup user config"
         backup_usr_cfg "$old_cfg"
         echo "update config"

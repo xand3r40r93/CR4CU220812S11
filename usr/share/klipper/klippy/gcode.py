@@ -224,16 +224,16 @@ class GCodeDispatch:
     def set_temperature(self, key, value):
         import json
         try:
-            configfile = self.printer.lookup_object('configfile')
-            print_stats = self.printer.load_object(configfile, 'print_stats')
+            # configfile = self.printer.lookup_object('configfile')
+            # print_stats = self.printer.load_object(configfile, 'print_stats')
             temp_value = float(value.strip("\n").split("S")[-1])
-            if key == "extruder" and print_stats and print_stats.state == "printing":
-                if temp_value >= 240:
-                    self.run_script_from_command("M107 P1")
-                    logging.info("Fan Off SET M107 P1")
-                elif temp_value >= 170:
-                    self.run_script_from_command("M106 P1 S255")
-                    logging.info("Fan On SET M106 P1 S255")
+            # if key == "extruder" and print_stats and print_stats.state == "printing":
+            #     if temp_value >= 240:
+            #         self.run_script_from_command("M107 P1")
+            #         logging.info("Fan Off SET M107 P1")
+            #     elif temp_value >= 170:
+            #         self.run_script_from_command("M106 P1 S255")
+            #         logging.info("Fan On SET M106 P1 S255")
             if key == "extruder" and temp_value < 170:
                 return
             if not os.path.exists(self.last_temperature_info):

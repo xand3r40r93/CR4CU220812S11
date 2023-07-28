@@ -407,7 +407,8 @@ class ProbePointsHelper:
         if self.use_offsets:
             nextpos[0] -= self.probe_offsets[0]
             nextpos[1] -= self.probe_offsets[1]
-        nextpos_z =self.printer.lookup_object('prtouch').get_best_rdy_z(nextpos[0], nextpos[1]) + 1.5
+        prtouch = self.printer.lookup_object('prtouch')
+        nextpos_z = prtouch.get_best_rdy_z(nextpos[0], nextpos[1]) + prtouch.cfg.best_above_z
         toolhead.manual_move(nextpos[:2] + [nextpos_z], self.speed)
         # toolhead.manual_move(nextpos, self.speed)
         return False

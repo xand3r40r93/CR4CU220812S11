@@ -66,7 +66,7 @@ class CUSTOM_MACRO:
     def cmd_CX_PRINT_DRAW_ONE_LINE(self, gcmd):
         self.gcode.run_script_from_command('G92 E0')
         self.gcode.run_script_from_command('G1 X10 Y10 Z2 F6000')
-        self.gcode.run_script_from_command('G1 Z0.2 F300')
+        self.gcode.run_script_from_command('G1 Z0.1 F600')
         self.pheaters = self.printer.lookup_object('heaters')
         self.heater_hot = self.printer.lookup_object('extruder').heater
         self.gcode.respond_info("can_break_flag = %d" % (self.pheaters.can_break_flag))
@@ -93,11 +93,15 @@ class CUSTOM_MACRO:
             self.gcode.run_script_from_command('M221 S100')
             self.gcode.run_script_from_command('G1 Z2.0 F1200')
             self.gcode.run_script_from_command('G1 X0.1 Y20 Z0.3 F6000.0')
-            self.gcode.run_script_from_command('G1 X0.1 Y180.0 Z0.3 F3000.0 E15')
+            self.gcode.run_script_from_command('G1 X0.1 Y180.0 Z0.3 F3000.0 E10.0')
             self.gcode.run_script_from_command('G1 X0.4 Y180.0 Z0.3 F3000.0')
-            self.gcode.run_script_from_command('G1 X0.4 Y20 Z0.3 F3000.0 E30')
+            self.gcode.run_script_from_command('G1 X0.4 Y20.0 Z0.3 F3000.0 E20.0')
+            self.gcode.run_script_from_command('G1 Z2.0 F600.0')
+            self.gcode.run_script_from_command('G1 Z0.3 F600.0')
+            self.gcode.run_script_from_command('G1 Z2.0 F600.0')
+            # self.gcode.run_script_from_command('G1 X0.4 Y10.0 Z0.3 F6000.0')
             self.gcode.run_script_from_command('G92 E0')
-            self.gcode.run_script_from_command('G1 Z2.0 F1200')
+            # self.gcode.run_script_from_command('G1 Z2.0 F600')
             self.gcode.run_script_from_command('G1 F12000')
             self.gcode.run_script_from_command('G21')
         pass

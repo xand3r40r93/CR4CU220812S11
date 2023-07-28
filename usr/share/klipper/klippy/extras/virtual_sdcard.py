@@ -56,6 +56,9 @@ class VirtualSD:
         self.layer = 0
         self.layer_count = 0
         self.is_continue_print = False
+        self.slow_print = False
+        self.slow_count = 0
+        self.speed_factor = 1.0/60.0
     def handle_shutdown(self):
         if self.work_timer is not None:
             self.must_pause_work = True
@@ -143,6 +146,7 @@ class VirtualSD:
         self.count_M204 = 0
         self.layer = 0
         self.layer_count = 0
+        self.resume_print_speed()
         if self.current_file is not None:
             self.do_pause()
             self.current_file.close()
@@ -405,6 +409,14 @@ class VirtualSD:
             logging.error(err)
         return layer_count
         
+    def resume_print_speed(self):
+        if self.slow_print == True:
+            self.slow_print = False
+            self.slow_count = 0
+            speed_cmd = "M220 S%s" % (self.speed_factor * 100 * 60)
+            logging.info("power_loss slow_print:%s Resume" % speed_cmd)
+            self.gcode.run_script_from_command(speed_cmd)
+        
     # Background work timer
     def work_handler(self, eventtime):
         reportInformation("Start print, filename:%s" % self.current_file.name)
@@ -490,6 +502,12 @@ class VirtualSD:
                 gcode_move.cmd_CX_RESTORE_GCODE_STATE(print_info, self.print_file_name_path, XYZE)
                 logging.info("power_loss end do_resume success")
                 self.print_stats.power_loss = 0
+                if self.layer > 1:
+                    self.slow_print = True
+                    self.slow_count = self.layer + 1
+                    self.speed_factor = gcode_move.speed_factor
+                    self.gcode.run_script("M220 S20")
+                    logging.info("power_loss slow_print M220 S20 SET")
             else:
                 self.gcode.run_script("G90")
         except Exception as err:
@@ -668,6 +686,8 @@ class VirtualSD:
                                         logging.error(err)
                             layer_count += 1
                             break
+                if self.slow_print == True and self.layer > 0 and self.slow_count < self.layer:
+                    self.resume_print_speed()
                 self.gcode.run_script(line)
                 self.count_line += 1
                 if self.count_G1 < 20 and line.startswith("G1"):
@@ -680,11 +700,13 @@ class VirtualSD:
                     logging.exception("virtual_sdcard on_error")
                 self.layer = 0
                 self.layer_count = 0
+                self.resume_print_speed()
                 break
             except:
                 logging.exception("virtual_sdcard dispatch")
                 self.layer = 0
                 self.layer_count = 0
+                self.resume_print_speed()
                 break
             self.cmd_from_sd = False
             self.file_position = self.next_file_position

@@ -622,8 +622,6 @@ class BedMeshCalibrate:
         self.probe_helper.start_probe(gcmd)
     def probe_finalize(self, offsets, positions):
         x_offset, y_offset, z_offset = offsets
-        if self.printer.objects.get('laser'):
-            z_offset = self.printer.lookup_object('laser').val.middle_point_z
         positions = [[round(p[0], 2), round(p[1], 2), p[2]]
                      for p in positions]
         params = dict(self.mesh_config)
@@ -691,16 +689,10 @@ class BedMeshCalibrate:
                 row = []
             if pos[0] > prev_pos[0]:
                 # probed in the positive direction
-                if self.printer.objects.get('laser'):
-                    row.append(z_offset - pos[2])
-                else:
-                    row.append(pos[2] - z_offset)
+                row.append(pos[2] - z_offset)
             else:
                 # probed in the negative direction
-                if self.printer.objects.get('laser'):
-                    row.insert(0, z_offset - pos[2])
-                else:
-                    row.insert(0, pos[2] - z_offset)
+                row.insert(0, pos[2] - z_offset)
             prev_pos = pos
         # append last row
         probed_matrix.append(row)

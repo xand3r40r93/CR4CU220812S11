@@ -132,9 +132,9 @@ class AccelQueryHelper:
                 if samp_time > self.request_end_time:
                     break
 
-                # 50000 * sizeof(samp_time, x, y, z) + sizeof(count)
+                # 30000 * sizeof(samp_time, x, y, z) + sizeof(count)
                 # switch process
-                if count % 1600000 == 4:
+                if count % 960000 == 4:
                     reactor.pause(reactor.monotonic() + .1)
 
                 self.copy_double_to_buffer(buffer, count, samp_time)

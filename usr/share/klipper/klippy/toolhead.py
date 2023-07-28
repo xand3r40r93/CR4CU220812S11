@@ -430,17 +430,20 @@ class ToolHead:
         self.kin.set_position(newpos, homing_axes)
         self.printer.send_event("toolhead:set_position")
     def record_z_pos(self, commanded_pos_z):
-        try:
-            if abs(commanded_pos_z-self.z_pos) > 5:
-                self.z_pos = commanded_pos_z
-                with open(self.z_pos_filepath, "w") as f:
-                    f.write(json.dumps({"z_pos": commanded_pos_z}))
-                    f.flush()
-                print_stats = self.printer.lookup_object('print_stats', None)
-                print_stats.z_pos = self.z_pos
-                logging.info("record_z_pos:%s" % commanded_pos_z)
-        except Exception as err:
-            logging.error(err)
+        curtime = self.printer.get_reactor().monotonic()
+        kin_status = self.kin.get_status(curtime)
+        if ('z' in kin_status['homed_axes']):
+            try:
+                if abs(commanded_pos_z-self.z_pos) > 5:
+                    self.z_pos = commanded_pos_z
+                    with open(self.z_pos_filepath, "w") as f:
+                        f.write(json.dumps({"z_pos": commanded_pos_z}))
+                        f.flush()
+                    print_stats = self.printer.lookup_object('print_stats', None)
+                    print_stats.z_pos = self.z_pos
+                    logging.info("record_z_pos:%s" % commanded_pos_z)
+            except Exception as err:
+                logging.error(err)
     def move(self, newpos, speed):
         self.record_z_pos(newpos[2])
         move = Move(self, self.commanded_pos, newpos, speed)

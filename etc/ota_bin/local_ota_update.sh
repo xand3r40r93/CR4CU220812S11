@@ -316,7 +316,7 @@ ota_site=${OTA_FILE_PATH}/${OTA_UNZIP_FILE_NAME}
 cp -rf ${OTA_FILE} ${OTA_FILE_PATH}
 unzip ${OTA_FILE_PATH}/${OTA_FILE_NAME} -d ${OTA_FILE_PATH}
 if [ $? != 0 ]; then
-    /usr/bin/7z x -p'qH5i25Vd0kiFQl4B' ${OTA_FILE_PATH}/${OTA_FILE_NAME} -o${OTA_FILE_PATH}
+    /usr/bin/ota_file e ${OTA_FILE_PATH}/${OTA_FILE_NAME} ${OTA_FILE_PATH}
 fi
 
 # ota 版本文件地址

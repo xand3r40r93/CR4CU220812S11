@@ -111,10 +111,6 @@ class PrinterProbe:
             return gcmd.get_float("LIFT_SPEED", self.lift_speed, above=0.)
         return self.lift_speed
     def get_offsets(self):
-        if self.printer.objects.get('laser'):
-            x_offset = self.printer.lookup_object('laser').cfg.x_offset
-            y_offset = self.printer.lookup_object('laser').cfg.y_offset
-            return x_offset, y_offset, self.z_offset
         return self.x_offset, self.y_offset, self.z_offset
     def _probe(self, speed):
         toolhead = self.printer.lookup_object('toolhead')
@@ -125,10 +121,7 @@ class PrinterProbe:
         pos = toolhead.get_position()
         pos[2] = self.z_position
         try:
-            if self.printer.objects.get('laser'):
-                epos = self.printer.lookup_object('laser').run_G29_Z()
-            else:
-                epos = phoming.probing_move(self.mcu_probe, pos, speed)
+            epos = phoming.probing_move(self.mcu_probe, pos, speed)
         except self.printer.command_error as e:
             reason = str(e)
             if "Timeout during endstop homing" in reason:

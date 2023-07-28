@@ -306,6 +306,9 @@ class GCodeMove:
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE before G28 X Y self.last_position:%s" % str(self.last_position))
             gcode.run_script("G28 X Y")
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE after G28 X Y self.last_position:%s" % str(self.last_position))
+            logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE before BED_MESH_PROFILE LOAD='default'")
+            gcode.run_script('BED_MESH_PROFILE LOAD="default"')
+            logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE after BED_MESH_PROFILE LOAD='default'")
             x = self.last_position[0]
             y = self.last_position[1]
             z = state['last_position'][2] + self.variable_safe_z + state["variable_z_safe_pause"]

@@ -20,7 +20,7 @@ class CUSTOM_HOMING:
         self.end_position_x = config.getsection('stepper_x').getfloat('position_endstop', default=0, minval=-20, maxval=800)
         self.end_position_y = config.getsection('stepper_y').getfloat('position_endstop', default=0, minval=-20, maxval=800)
         self.speed = config.getfloat('move_speed', 50.0, above=0.)
-        self.move_dist = config.getfloat('z_move_dist', 15.0, above=0.)
+        self.move_dist = config.getfloat('z_move_dist', 10.0, above=0.)
         self.move_to_previous = config.getboolean('move_to_previous', False)
         self.printer.load_object(config, 'homing')
         self.gcode = self.printer.lookup_object('gcode')

@@ -23,6 +23,44 @@ rm_pyc()
     sync
 }
 
+get_cfg_version()
+{
+    local cfg="$1"
+    local version=$(head "$cfg" | grep -w Version | awk '{print $3}')
+    local tmp=""
+
+    if [ "x$version" != "x" ]; then
+        # remove char '.'
+        tmp=${version//./}
+        # remove char 'v' or 'V'
+        tmp=${tmp//v/}
+        version=${tmp//V/}
+        echo "$version"
+    else
+        echo "000"
+    fi
+}    
+
+update_config()
+{
+    local old_cfg="$2"
+    local new_cfg="$1"
+    local tmp_cfg=$PRINTER_CONFIG_DIR/.printer.cfg
+
+    local old_version=$(get_cfg_version "$old_cfg")
+    local new_version=$(get_cfg_version "$new_cfg")
+    echo "old_version: $old_version"
+    echo "new_version: $new_version"
+
+    if [ $new_version -gt $old_version ]; then
+        echo "update config"
+        cp "$new_cfg" "$tmp_cfg"
+        echo "" >> "$tmp_cfg"
+        cat "$old_cfg" | sed -n '/SAVE_CONFIG/,$p' >> "$tmp_cfg"
+        cp "$tmp_cfg" "$old_cfg" && sync
+    fi
+}
+
 copy_config()
 {
     local model=$(get_sn_mac.sh model)
@@ -74,7 +112,7 @@ copy_config()
 
     if [ -s $PRINTER_CONFIG_DIR/printer.cfg ]; then
         if [ -s $PRINTER_CONFIG_DIR/printer_params.cfg ]; then
-            echo "no need to update config files"
+            echo "no need to update custom config files"
         else
             [ "x${config_dir}" != "x" -a -d /usr/share/klipper/config/${config_dir} ] && {
                 # keep printer.cfg
@@ -82,6 +120,9 @@ copy_config()
                 sync
             }
         fi
+
+        # update printer.cfg and keep SAVE_CONFIG section
+        update_config "/usr/share/klipper/config/${config_dir}/printer.cfg" $PRINTER_CONFIG_DIR/printer.cfg
     else
         [ "x${config_dir}" != "x" -a -d /usr/share/klipper/config/${config_dir} ] && {
             cp -af /usr/share/klipper/config/${config_dir}/*.cfg $PRINTER_CONFIG_DIR/

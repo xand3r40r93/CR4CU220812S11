@@ -426,9 +426,9 @@ def main():
                         " Severe timing issues may result!")
     gc.disable()
 
-    import threading
-    t = threading.Thread(target=heartbeatPacket)
-    t.start()
+    # import threading
+    # t = threading.Thread(target=heartbeatPacket)
+    # t.start()
 
     # Start Printer() class
     while 1:

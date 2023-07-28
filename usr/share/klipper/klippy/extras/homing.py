@@ -273,7 +273,7 @@ class PrinterHoming:
         kin.home_z_with_sensorless(homing_state, move_dist)
         # gcode = self.printer.lookup_object('gcode')
         pos = toolhead.get_position()
-        pos[2] = 0.8*move_dist
+        pos[2] = move_dist - 3
         toolhead.set_position(pos, homing_axes=[2])
         toolhead.manual_move([None, None, 0.], 5)
         if hasattr(toolhead.get_kinematics(), "note_z_not_homed"):

@@ -285,6 +285,17 @@ class ToolHead:
                    "manual_probe", "tuning_tower"]
         for module_name in modules:
             self.printer.load_object(config, module_name)
+        self.z_pos_filepath = "/usr/data/creality/userdata/config/z_pos.json"
+        self.z_pos = self.get_z_pos()
+    def get_z_pos(self):
+        z_pos = 0
+        if os.path.exists(self.z_pos_filepath):
+            try:
+                with open(self.z_pos_filepath, "r") as f:
+                    z_pos = float(json.loads(f.read()).get("z_pos", 0))
+            except Exception as err:
+                logging.error(err)
+        return z_pos
     # Print time tracking
     def _update_move_time(self, next_print_time):
         batch_time = MOVE_BATCH_TIME
@@ -418,7 +429,20 @@ class ToolHead:
         self.commanded_pos[:] = newpos
         self.kin.set_position(newpos, homing_axes)
         self.printer.send_event("toolhead:set_position")
+    def record_z_pos(self, commanded_pos_z):
+        try:
+            if abs(commanded_pos_z-self.z_pos) > 5:
+                self.z_pos = commanded_pos_z
+                with open(self.z_pos_filepath, "w") as f:
+                    f.write(json.dumps({"z_pos": commanded_pos_z}))
+                    f.flush()
+                print_stats = self.printer.lookup_object('print_stats', None)
+                print_stats.z_pos = self.z_pos
+                logging.info("record_z_pos:%s" % commanded_pos_z)
+        except Exception as err:
+            logging.error(err)
     def move(self, newpos, speed):
+        self.record_z_pos(newpos[2])
         move = Move(self, self.commanded_pos, newpos, speed)
         if not move.move_d:
             return

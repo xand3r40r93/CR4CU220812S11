@@ -629,6 +629,22 @@ class MCU:
             code_key_string = "key91"
         elif msg == "ADC out of range":
             code_key_string = "key92"
+            mcu_temp_obj = self._printer.lookup_object('temperature_sensor mcu_temp') if self._printer.objects.get('temperature_sensor mcu_temp') else None
+            chamber_temp_obj = self._printer.lookup_object('temperature_sensor chamber_temp') if self._printer.objects.get('temperature_sensor chamber_temp') else None
+            heater_bed_obj = self._printer.lookup_object('heater_bed') if self._printer.objects.get('heater_bed') else None
+            extruder_obj = self._printer.lookup_object('extruder') if self._printer.objects.get('extruder') else None
+            if extruder_obj and extruder_obj.heater.smoothed_temp < 0:
+                msg += " extruder_temp:%s" % round(extruder_obj.heater.smoothed_temp, 2)
+                code_key_string = "key509"
+            if heater_bed_obj and heater_bed_obj.heater.smoothed_temp < 0:
+                msg += " heater_bed_temp:%s" % round(heater_bed_obj.heater.smoothed_temp, 2)
+                code_key_string = "key510"
+            if chamber_temp_obj and chamber_temp_obj.last_temp < 0:
+                msg += " chamber_temp:%s" % round(chamber_temp_obj.last_temp, 2)
+                code_key_string = "key511"
+            if mcu_temp_obj and mcu_temp_obj.last_temp < 0:
+                msg += " mcu_temp:%s" % round(mcu_temp_obj.last_temp, 2)
+                code_key_string = "key512"
         elif msg == "Rescheduled timer in the past":
             code_key_string = "key93"
         elif msg == "Command request":

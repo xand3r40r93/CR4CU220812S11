@@ -1236,18 +1236,21 @@ class ProfileManager:
             % (prof_name))
     def load_profile(self, prof_name):
         profile = self.profiles.get(prof_name, None)
-        if profile is None:
-            raise self.gcode.error(
-                "bed_mesh: Unknown profile [%s]" % prof_name)
-        probed_matrix = profile['points']
-        mesh_params = profile['mesh_params']
-        z_mesh = ZMesh(mesh_params,self.printer)
-        try:
-            z_mesh.build_mesh(probed_matrix)
-        except BedMeshError as e:
-            raise self.gcode.error(str(e))
-        self.current_profile = prof_name
-        self.bedmesh.set_mesh(z_mesh)
+        if profile is not None:
+            probed_matrix = profile['points']
+            mesh_params = profile['mesh_params']
+            z_mesh = ZMesh(mesh_params,self.printer)
+            try:
+                z_mesh.build_mesh(probed_matrix)
+            except BedMeshError as e:
+                raise self.gcode.error(str(e))
+            self.current_profile = prof_name
+            self.bedmesh.set_mesh(z_mesh)
+        else:
+            self.gcode.respond_info("bed_mesh: Unknown profile [%s]" % (prof_name,))
+            # raise self.gcode.error(
+            #     "bed_mesh: Unknown profile [%s]" % prof_name)
+
     def remove_profile(self, prof_name):
         if prof_name in self.profiles:
             configfile = self.printer.lookup_object('configfile')

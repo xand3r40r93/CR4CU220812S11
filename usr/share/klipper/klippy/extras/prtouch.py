@@ -22,15 +22,15 @@ class PRTouchCFG:
         self.bed_max_temp = config.getfloat('s_bed_max_temp', default=60, minval=45, maxval=100)
         self.pa_fil_len_mm = config.getint('pa_fil_len_mm', default=2, minval=2, maxval=100)
         self.pa_fil_dis_mm = config.getint('pa_fil_dis_mm', default=30, minval=2, maxval=100)
-        self.pa_clr_dis_mm = config.getint('pa_clr_dis_mm', default=10, minval=2, maxval=100)
+        self.pa_clr_dis_mm = config.getint('pa_clr_dis_mm', default=20, minval=2, maxval=100)
         self.pa_clr_down_mm = config.getfloat('pa_clr_down_mm', default=-0.1, minval=-1, maxval=1)
         self.clr_noz_start_x = config.getfloat('clr_noz_start_x', default=0, minval=0, maxval=1000)
         self.clr_noz_start_y = config.getfloat('clr_noz_start_y', default=0, minval=0, maxval=1000)
-        self.clr_noz_len_x = config.getfloat('clr_noz_len_x', default=0, minval=self.pa_clr_dis_mm + 10, maxval=1000)
+        self.clr_noz_len_x = config.getfloat('clr_noz_len_x', default=0, minval=self.pa_clr_dis_mm + 6, maxval=1000)
         self.clr_noz_len_y = config.getfloat('clr_noz_len_y', default=0, minval=0, maxval=1000)
-        self.bed_max_err = config.getint('bed_max_err', default=3, minval=2, maxval=10)
+        self.bed_max_err = config.getint('bed_max_err', default=2, minval=2, maxval=10)
         self.max_z = config.getsection('stepper_z').getfloat('position_max', default=300, minval=100, maxval=500)
-        self.g29_xy_speed = config.getsection('bed_mesh').getfloat('speed', default=200, minval=10, maxval=1000)
+        self.g29_xy_speed = config.getfloat('g29_xy_speed', default=150, minval=10, maxval=1000)
         self.fix_z_offset = config.getfloat('fix_z_offset', default=0.0, minval=-1, maxval=1)
         self.max_dis_bef_g28 = config.getfloat('max_dis_bef_g28', default=10, minval=0, maxval=50)
         self.dead_zone_bef_g28 = config.getfloat('dead_zone_bef_g28', default=self.max_dis_bef_g28 / 2, minval=0, maxval=50) 
@@ -41,17 +41,17 @@ class PRTouchCFG:
         self.show_msg = config.getboolean('show_msg', default=False)
         self.best_above_z = config.getfloat('best_above_z', default=1.5, minval=0.5, maxval=10)
         self.g28_wait_cool_down = config.getboolean('g28_wait_cool_down', default=False)
-        self.shake_cnt = config.getint('shake_cnt', default=10, minval=1, maxval=512)
+        self.shake_cnt = config.getint('shake_cnt', default=4, minval=1, maxval=512)
         self.shake_range = config.getint('shake_range', default=0.5, minval=0.1, maxval=2)
         self.shake_max_velocity = config.getfloat('shake_max_velocity', default=100, minval=1, maxval=5000)
         self.shake_max_accel = config.getfloat('shake_max_accel', default=1000, minval=1, maxval=50000)
         self.g28_sta0_min_hold = config.getint('g28_sta0_min_hold', default=self.min_hold * 2, minval=100, maxval=100000)
         self.need_measure_gap = config.getboolean('need_measure_gap', default=True)
         self.gap_dis_range = config.getfloat('gap_dis_range', default=0.6, minval=0.2, maxval=2)
-        self.z_gap_00 = config.getfloat('z_gap_00', default=0, minval=0, maxval=1)
-        self.z_gap_01 = config.getfloat('z_gap_01', default=0, minval=0, maxval=1)
-        self.z_gap_10 = config.getfloat('z_gap_10', default=0, minval=0, maxval=1)
-        self.z_gap_11 = config.getfloat('z_gap_11', default=0, minval=0, maxval=1)
+        self.z_gap_00 = config.getfloat('z_gap_00', default=0, minval=-1, maxval=1)
+        self.z_gap_01 = config.getfloat('z_gap_01', default=0, minval=-1, maxval=1)
+        self.z_gap_10 = config.getfloat('z_gap_10', default=0, minval=-1, maxval=1)
+        self.z_gap_11 = config.getfloat('z_gap_11', default=0, minval=-1, maxval=1)
         self.check_bed_mesh_max_err = config.getfloat('check_bed_mesh_max_err', default=0.2, minval=0.01, maxval=1)
         self.tri_wave_ip    = config.get('tri_wave_ip', None)
         self.self_z_offset = config.getfloat('self_z_offset', default=0.0, minval=-2, maxval=2)
@@ -70,6 +70,7 @@ class PRTouchVAL:
         self.g29_cnt = int(0)
         self.re_probe_cnt = 0
         self.home_xy = None
+        self.jump_probe_ready = False
         pass
 
 
@@ -120,14 +121,14 @@ class PRTouchEndstopWrapper:
         self.obj.find_objs()
         min_x, min_y = self.obj.bed_mesh.bmc.mesh_min
         max_x, max_y = self.obj.bed_mesh.bmc.mesh_max
-        self.val.rdy_pos = [[min_x + 1., min_y + 1., self.cfg.bed_max_err + 1.],
-                            [min_x + 1., max_y - 1., self.cfg.bed_max_err + 1.],
-                            [max_x - 1., max_y - 1., self.cfg.bed_max_err + 1.],
-                            [max_x - 1., min_y + 1., self.cfg.bed_max_err + 1.]]
-        self.val.gap_pos = [[min_x + 1., min_y + 1., self.cfg.z_gap_00 if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_00', default=self.cfg.z_gap_00, minval=0, maxval=1)],
-                            [min_x + 1., max_y - 1., self.cfg.z_gap_01 if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_01', default=self.cfg.z_gap_01, minval=0, maxval=1)],
-                            [max_x - 1., max_y - 1., self.cfg.z_gap_11 if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_11', default=self.cfg.z_gap_11, minval=0, maxval=1)],
-                            [max_x - 1., min_y + 1., self.cfg.z_gap_10 if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_10', default=self.cfg.z_gap_10, minval=0, maxval=1)]]
+        self.val.rdy_pos = [[min_x, min_y, self.cfg.bed_max_err + 1.],
+                            [min_x, max_y, self.cfg.bed_max_err + 1.],
+                            [max_x, max_y, self.cfg.bed_max_err + 1.],
+                            [max_x, min_y, self.cfg.bed_max_err + 1.]]
+        self.val.gap_pos = [[min_x + 1., min_y + 1., self.cfg.z_gap_00], # if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_00', default=self.cfg.z_gap_00, minval=0, maxval=1)],
+                            [min_x + 1., max_y - 1., self.cfg.z_gap_01], # if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_01', default=self.cfg.z_gap_01, minval=0, maxval=1)],
+                            [max_x - 1., max_y - 1., self.cfg.z_gap_11], # if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_11', default=self.cfg.z_gap_11, minval=0, maxval=1)],
+                            [max_x - 1., min_y + 1., self.cfg.z_gap_10]] # if self.cfg.stored_profs is None else self.cfg.stored_profs.getfloat('z_gap_10', default=self.cfg.z_gap_10, minval=0, maxval=1)]]
         if self.cfg.clr_noz_start_x <= 0 or self.cfg.clr_noz_start_y <= 0 or self.cfg.clr_noz_len_x <= 0 or self.cfg.clr_noz_len_y <= 0:
             self.cfg.clr_noz_start_x = (max_x - min_x) * 1 / 3 + min_x
             self.cfg.clr_noz_start_y = max_y - 6
@@ -267,11 +268,13 @@ class PRTouchEndstopWrapper:
         pass
 
     def pnt_msg(self, msg):
+        logging.info(msg)
         if self.cfg.show_msg:
             self.obj.gcode.respond_info(msg)
         pass
 
     def pnt_array(self, title, ary, lent=32):
+        logging.info('[%s] %s' , title, str(ary))
         if self.cfg.show_msg:
             st = title + ' ['
             for i in range(len(ary) - lent, len(ary)):
@@ -282,6 +285,9 @@ class PRTouchEndstopWrapper:
     def _probe_times(self, max_times, rdy_pos, speed_mm, min_dis_mm, max_z_err, min_hold, max_hold):
         o_mm = 0
         rdy_pos_z = rdy_pos[2]
+        now_pos = self.obj.toolhead.get_position()
+        self._move(now_pos[:2] + [rdy_pos[2]], self.cfg.g29_rdy_speed)        
+        self._move(rdy_pos, self.cfg.g29_xy_speed)
         for i in range(max_times):
             o_index0, o_mm0, deal_sta = self.probe_by_step(rdy_pos[:2] + [rdy_pos_z], speed_mm, min_dis_mm, min_hold, max_hold, True)
             if not deal_sta and rdy_pos_z == rdy_pos[2]:
@@ -330,10 +336,10 @@ class PRTouchEndstopWrapper:
 
         now_pos = self.obj.toolhead.get_position()
         for i in range(int(cnt / 2)):
-            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F6000' % (now_pos[0] - self.cfg.shake_range, now_pos[1] - self.cfg.shake_range, now_pos[2] - self.cfg.shake_range / 2))
-            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F6000' % (now_pos[0] + self.cfg.shake_range, now_pos[1] - self.cfg.shake_range, now_pos[2] + self.cfg.shake_range / 2))
-            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F6000' % (now_pos[0] + self.cfg.shake_range, now_pos[1] + self.cfg.shake_range, now_pos[2] - self.cfg.shake_range / 2))
-            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F6000' % (now_pos[0] - self.cfg.shake_range, now_pos[1] + self.cfg.shake_range, now_pos[2] + self.cfg.shake_range / 2))
+            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F600' % (now_pos[0] - self.cfg.shake_range, now_pos[1] - self.cfg.shake_range, now_pos[2] - self.cfg.shake_range / 2))
+            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F600' % (now_pos[0] + self.cfg.shake_range, now_pos[1] - self.cfg.shake_range, now_pos[2] + self.cfg.shake_range / 2))
+            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F600' % (now_pos[0] + self.cfg.shake_range, now_pos[1] + self.cfg.shake_range, now_pos[2] - self.cfg.shake_range / 2))
+            self.obj.gcode.run_script_from_command('G1 X%.2f Y%.2f Z%.2f F600' % (now_pos[0] - self.cfg.shake_range, now_pos[1] + self.cfg.shake_range, now_pos[2] + self.cfg.shake_range / 2))
             while len(self.obj.toolhead.move_queue.queue) >= 4 and self.ck_sys_sta():
                 self.obj.hx711s.delay_s(0.010)
         self._move(now_pos, self.cfg.g29_xy_speed)
@@ -352,19 +358,20 @@ class PRTouchEndstopWrapper:
         self._ck_g28ed(False)
         random.seed(time.time())  
         cur_pos = self.obj.toolhead.get_position()
-        src_pos = [min_x + 10 + random.uniform(0, self.cfg.clr_noz_len_x - self.cfg.pa_clr_dis_mm - 10), 
+        src_pos = [min_x + random.uniform(0, self.cfg.clr_noz_len_x - self.cfg.pa_clr_dis_mm - 5), 
                    min_y + random.uniform(0, self.cfg.clr_noz_len_y), self.cfg.bed_max_err + 1, cur_pos[3]]
         end_pos = [src_pos[0] + self.cfg.pa_clr_dis_mm, src_pos[1], src_pos[2], src_pos[3]]
         self._set_hot_temps(temp=hot_min_temp, fan_spd=0, wait=True, err=10)   
-        self._set_hot_temps(temp=hot_max_temp, fan_spd=0, wait=False, err=10)
-        src_pos[2] = self._probe_times(3, [src_pos[0] - 5, src_pos[1], src_pos[2]], 3, 10, 0.2, min_hold, max_hold)
-        end_pos[2] = self._probe_times(3, [end_pos[0] - 5, end_pos[1], end_pos[2]], 3, 10, 0.2, min_hold, max_hold)         
-        self._move(src_pos[:2] + [src_pos[2] + 0.2], 50) 
+        src_pos[2] = self._probe_times(3, [src_pos[0] - 5, src_pos[1], src_pos[2]], self.cfg.g29_speed, 10, 0.2, min_hold * 2, max_hold)
+        self._set_hot_temps(temp=hot_min_temp + 40, fan_spd=0, wait=False, err=10)
+        end_pos[2] = self._probe_times(3, [end_pos[0] - 5, end_pos[1], end_pos[2]], self.cfg.g29_speed, 10, 0.2, min_hold * 2, max_hold)     
+        self._move(src_pos[:2] + [self.cfg.bed_max_err + 1], self.cfg.g29_xy_speed) 
+        self._move(src_pos[:2] + [src_pos[2] + 0.2], self.cfg.g29_rdy_speed) 
         self._set_hot_temps(temp=hot_max_temp, fan_spd=0, wait=True, err=10)
         self._set_hot_temps(temp=hot_min_temp, fan_spd=0, wait=False)
-        self._move(end_pos[:2] + [end_pos[2] + self.cfg.pa_clr_down_mm], 2)
+        self._move(end_pos[:2] + [end_pos[2] + self.cfg.pa_clr_down_mm], self.cfg.g29_speed)
         self._set_hot_temps(temp=hot_min_temp, fan_spd=255, wait=True, err=5)
-        self._move([end_pos[0] + 10, end_pos[1], end_pos[2] + 10], 3)
+        self._move([end_pos[0] + 10, end_pos[1], end_pos[2] + 10], self.cfg.g29_speed)
         self._set_hot_temps(temp=hot_min_temp, fan_spd=0, wait=False) 
         self._set_bed_temps(temp=bed_max_temp, wait=True, err=5)
 
@@ -383,7 +390,7 @@ class PRTouchEndstopWrapper:
         step_us = int(((min_dis_mm / speed_mm) * 1000 * 1000) / step_cnt)
 
         now_pos = self.obj.toolhead.get_position()  
-        self._move(now_pos[:2] + [zero_z + min_dis_mm / 2, now_pos[3]], self.cfg.g29_rdy_speed * 2)
+        self._move(now_pos[:2] + [zero_z + min_dis_mm / 2, now_pos[3]], self.cfg.g29_rdy_speed)
         self.obj.hx711s.read_base(int(self.cfg.base_count / 2), self.cfg.max_hold)
 
         self.obj.hx711s.query_start(rd_cnt, rd_cnt, del_dirty=False, show_msg=False)       
@@ -474,31 +481,36 @@ class PRTouchEndstopWrapper:
         gaps = []
         now_pos = self.obj.toolhead.get_position()          
         for i in range(max_times):
-            self._move(now_pos[:2] + [zero_pos + 2, now_pos[3]], self.cfg.g29_rdy_speed * 3)
+            self._move(now_pos[:2] + [zero_pos + 2, now_pos[3]], self.cfg.g29_rdy_speed)
             self.shake_motor(int(self.cfg.shake_cnt / 2))
             gaps.append(self.measure_gap(zero_pos))
         gaps.sort()
         self.pnt_array('Gap measure vals = ', gaps, len(gaps))
         now_pos = self.obj.toolhead.get_position()  
-        self._move(now_pos[:2] + [self.cfg.bed_max_err + 1., now_pos[3]], self.cfg.g29_rdy_speed * 3)
+        self._move(now_pos[:2] + [self.cfg.bed_max_err + 1., now_pos[3]], self.cfg.g29_rdy_speed)
         return gaps[int((max_times + 1) / 2)]
 
     def probe_ready(self):
+        if self.val.jump_probe_ready:
+            self.val.jump_probe_ready = False
+            return False
         self._ck_g28ed()
         min_x, min_y = self.obj.bed_mesh.bmc.mesh_min
         max_x, max_y = self.obj.bed_mesh.bmc.mesh_max
         random.seed(time.time()) 
-        self.val.rdy_pos = [[min_x + random.uniform(2.0, +5.0), min_y + random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
-                            [min_x + random.uniform(2.0, +5.0), max_y - random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
-                            [max_x - random.uniform(2.0, +5.0), max_y - random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
-                            [max_x - random.uniform(2.0, +5.0), min_y + random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.]]
+        self.val.rdy_pos = [[min_x, min_y, self.cfg.bed_max_err + 1.],
+                            [min_x, max_y, self.cfg.bed_max_err + 1.],
+                            [max_x, max_y, self.cfg.bed_max_err + 1.],
+                            [max_x, min_y, self.cfg.bed_max_err + 1.]]
+        mesh = self.obj.bed_mesh.get_mesh()
+        self.obj.bed_mesh.set_mesh(None)
         for i in range(4):
-            self.val.rdy_pos[i][2] = self._probe_times(3, self.val.rdy_pos[i], self.cfg.g29_rdy_speed, 10, 0.2, self.cfg.min_hold, self.cfg.max_hold)
-            if self.cfg.need_measure_gap:
-                self.val.gap_pos[i] = [x for x in self.val.rdy_pos[i]]
-                self.val.gap_pos[i][2] = self._gap_times(3, self.val.rdy_pos[i][2])
-            else:
-                self.val.gap_pos[i][2] = 0
+            self.val.rdy_pos[i][2] = self._probe_times(3, self.val.rdy_pos[i], self.cfg.g29_speed, 10, 0.2, self.cfg.min_hold, self.cfg.max_hold)
+            # if self.cfg.need_measure_gap:
+            #     self.val.gap_pos[i] = [x for x in self.val.rdy_pos[i]]
+            #     self.val.gap_pos[i][2] = self._gap_times(3, self.val.rdy_pos[i][2])
+            # else:
+            #     self.val.gap_pos[i][2] = 0
             pass
         if self.cfg.need_measure_gap:        
             configfile = self.obj.printer.lookup_object('configfile')
@@ -508,16 +520,18 @@ class PRTouchEndstopWrapper:
             configfile.set('prtouch default', 'z_gap_10', self.val.gap_pos[3][2])
         self.pnt_msg("RDY_POS = [00=%.2f, 01=%.2f, 11=%.2f, 10=%.2f]" % (self.val.rdy_pos[0][2], self.val.rdy_pos[1][2], self.val.rdy_pos[2][2], self.val.rdy_pos[3][2]))
         self.pnt_msg("GAP_POS = [00=%.2f, 01=%.2f, 11=%.2f, 10=%.2f]" % (self.val.gap_pos[0][2], self.val.gap_pos[1][2], self.val.gap_pos[2][2], self.val.gap_pos[3][2]))
+        self.obj.bed_mesh.set_mesh(mesh)
         pass
 
     def check_bed_mesh(self, auto_g29=True):
         min_x, min_y = self.obj.bed_mesh.bmc.mesh_min
         max_x, max_y = self.obj.bed_mesh.bmc.mesh_max
-        ck_pos = [  [min_x + random.uniform(0, +3.0), min_y + random.uniform(0, +3.0), self.cfg.bed_max_err + 1.],
-                    [min_x + random.uniform(0, +3.0), max_y - random.uniform(0, +3.0), self.cfg.bed_max_err + 1.],
-                    [max_x - random.uniform(0, +3.0), max_y - random.uniform(0, +3.0), self.cfg.bed_max_err + 1.],
-                    [max_x - random.uniform(0, +3.0), min_y + random.uniform(0, +3.0), self.cfg.bed_max_err + 1.]]
+        self.val.rdy_pos = [[min_x + random.uniform(2.0, +5.0), min_y + random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
+                            [min_x + random.uniform(2.0, +5.0), max_y - random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
+                            [max_x - random.uniform(2.0, +5.0), max_y - random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.],
+                            [max_x - random.uniform(2.0, +5.0), min_y + random.uniform(2.0, +5.0), self.cfg.bed_max_err + 1.]]
         err_cnt = int(0)
+        self.val.jump_probe_ready = True
         mesh = self.obj.bed_mesh.get_mesh()
         if mesh is None:
             if auto_g29:
@@ -534,16 +548,16 @@ class PRTouchEndstopWrapper:
         self._ck_g28ed()        
         self._move([self.val.home_xy[0], self.val.home_xy[1], self.cfg.bed_max_err + 1.0, self.obj.toolhead.get_position()[3]], self.cfg.g29_xy_speed)     
         for i in range(4):
-            ck_pos[i][2] = self._probe_times(3, ck_pos[i], self.cfg.g29_rdy_speed, 10, self.cfg.check_bed_mesh_max_err * 2, self.cfg.min_hold, self.cfg.max_hold) \
-                                            + self.get_best_rdy_z(ck_pos[i][0], ck_pos[i][1], self.val.gap_pos) + self.cfg.fix_z_offset
+            self.val.rdy_pos[i][2] = self._probe_times(3, self.val.rdy_pos[i], self.cfg.g29_speed, 10, self.cfg.check_bed_mesh_max_err * 2, self.cfg.min_hold, self.cfg.max_hold) + self.cfg.fix_z_offset
+            self.val.rdy_pos[i][2] += self.get_best_rdy_z(self.val.rdy_pos[i][0], self.val.rdy_pos[i][1], self.val.gap_pos) if self.cfg.need_measure_gap else 0
             pass       
         self.obj.bed_mesh.set_mesh(mesh)
         errs = []
         for i in range(4):
-            mesh_z = self.obj.bed_mesh.z_mesh.calc_z(ck_pos[i][0], ck_pos[i][1])
-            errs.append(abs(ck_pos[i][2] - mesh_z))
+            mesh_z = self.obj.bed_mesh.z_mesh.calc_z(self.val.rdy_pos[i][0], self.val.rdy_pos[i][1])
+            errs.append(abs(self.val.rdy_pos[i][2] - mesh_z))
             err_cnt += (1 if errs[i] > self.cfg.check_bed_mesh_max_err else 0)
-            self.pnt_msg('P%d = [x=%.2f, y=%.2f, mest_z=%.2f, probe_z=%.2f, err_z=%.2f]' % (i, ck_pos[i][0], ck_pos[i][1], mesh_z, ck_pos[i][2], errs[i]))        
+            self.pnt_msg('P%d = [x=%.2f, y=%.2f, mest_z=%.2f, probe_z=%.2f, err_z=%.2f]' % (i, self.val.rdy_pos[i][0], self.val.rdy_pos[i][1], mesh_z, self.val.rdy_pos[i][2], errs[i]))        
         if err_cnt >= 2:
             if auto_g29:
                 self.pnt_array("check_bed_mesh: Due to the great change of the hot bed, it needs to be re-leveled. errs = ", errs, len(errs))
@@ -603,9 +617,6 @@ class PRTouchEndstopWrapper:
         return (up_min_cnt if up_min_cnt >= 0 else 0), up_all_cnt, True
 
     def probe_by_step(self, rdy_pos, speed_mm, min_dis_mm, min_hold, max_hold, up_after=True):
-        now_pos = self.obj.toolhead.get_position()
-        self._move(rdy_pos[:2] + [now_pos[2]], self.cfg.g29_xy_speed)
-        self._move(rdy_pos[:3], self.cfg.g29_rdy_speed * 3)
         self.obj.hx711s.read_base(int(self.cfg.base_count / 2), max_hold)
         step_cnt = int(min_dis_mm / (self.obj.dirzctl.steppers[0].get_step_dist() * self.obj.dirzctl.step_base))
         step_us = int(((min_dis_mm / speed_mm) * 1000 * 1000) / step_cnt)
@@ -641,7 +652,7 @@ class PRTouchEndstopWrapper:
                     self.send_wave_tri(m, tmp_hx711_vs[m])
                 up_min_cnt, up_all_cnt, deal_sta = self._cal_min_z(rdy_pos[2], tmp_hx711_vs[i])
                 if up_after:
-                    self.obj.dirzctl.check_and_run(1, int(step_us / 6), int(up_all_cnt))
+                    self.obj.dirzctl.check_and_run(1, int(step_us / 2), int(up_all_cnt))
                 return self.val.out_index, self.val.out_val_mm, deal_sta
             self.obj.hx711s.delay_s(0.005)
         return self.val.out_index, self.val.out_val_mm, True
@@ -662,7 +673,7 @@ class PRTouchEndstopWrapper:
         mesh = self.obj.bed_mesh.get_mesh()
         self.obj.bed_mesh.set_mesh(None)                
         self.obj.toolhead.set_position(now_pos, homing_axes=[2])
-        self._move(now_pos_sta0, 50)
+        self._move(now_pos_sta0, 20)
         if self.cfg.g28_wait_cool_down and self.obj.heater_hot.smoothed_temp > (self.cfg.hot_min_temp + 5):
             self.pnt_msg('G28_Z: Wait for Nozzle to cool down[%.2f -> %.2f]...' % (target_temp, self.cfg.hot_min_temp))
             self._set_hot_temps(temp=self.cfg.hot_min_temp, fan_spd=255, wait=True, err=5) 
@@ -678,19 +689,20 @@ class PRTouchEndstopWrapper:
         is_uped = False
         for i in range(10):
             self.obj.toolhead.set_position(now_pos_sta0[:2] + [(2 if i == 0 else 0), now_pos_sta0[3]], homing_axes=[2])
+            self._move(now_pos_sta0[:3], self.cfg.g29_rdy_speed)
             out_index, out_mm, deal_sta = self.probe_by_step(now_pos_sta0, self.cfg.g28_sta0_speed, self.cfg.max_z, self.cfg.g28_sta0_min_hold, self.cfg.max_hold, up_after=False)
             if not deal_sta and not is_uped:
                 is_uped = True
                 self.obj.toolhead.set_position(now_pos_sta0[:2] + [0, now_pos_sta0[3]], homing_axes=[2])
-                self._move(now_pos_sta0[:2] + [5, now_pos_sta0[3]], 5)
+                self._move(now_pos_sta0[:2] + [5, now_pos_sta0[3]], self.cfg.g29_rdy_speed)
                 pass
             if (-1 < out_mm < 1 and deal_sta) or not self.ck_sys_sta():
                 break
         self.obj.toolhead.set_position(now_pos_sta0[:2] + [-0.5, now_pos[3]], homing_axes=[2])
-        self._move(now_pos_sta0[:2] + [2, now_pos[3]], self.cfg.g29_xy_speed)
+        self._move(now_pos_sta0[:2] + [2, now_pos[3]], self.cfg.g29_rdy_speed)
 
         now_pos = [now_pos[0] + random.uniform(-1.0, +1.0), now_pos[1] + random.uniform(-1.0, +1.0), 2, now_pos[3]]
-        self._move(now_pos, 50)
+        self._move(now_pos, 30)
         self.shake_motor(int(self.cfg.shake_cnt * 2))
         out_mms = []
         for i in range(5):
@@ -698,12 +710,14 @@ class PRTouchEndstopWrapper:
             out_mms.append(o_mm0)
         out_mms.sort()
         self.pnt_array('G28_ZS = ', out_mms, len(out_mms))
+        if math.fabs(out_mms[2]) > 1.0:
+             raise self.obj.printer.command_error("""{"code":"key504", "msg":"run_G28_Z: Homing Z failure, During zeroing, please place the machine on a stable platform and do not touch the hot bed."}""")
         self.obj.toolhead.set_position(now_pos[:2] + [now_pos[2] - out_mms[2] - self.cfg.self_z_offset, now_pos[3]], homing_axes=[2])
 
         self.obj.bed_mesh.set_mesh(mesh)
 
         # self.obj.gcode.run_script_from_command('G1 F300 Z10')
-        self._move(now_pos[:2] + [10, now_pos[3]], 5)
+        self._move(now_pos[:2] + [10, now_pos[3]], self.cfg.g29_rdy_speed)
 
         if self.cfg.g28_wait_cool_down:
             self.pnt_msg('G28_Z: Wait for Nozzle to recovery[%.2f -> %.2f]...' % (self.cfg.hot_min_temp, target_temp))
@@ -713,25 +727,33 @@ class PRTouchEndstopWrapper:
     def run_G29_Z(self):
         x_cnt = self.obj.bed_mesh.bmc.mesh_config['x_count']
         y_cnt = self.obj.bed_mesh.bmc.mesh_config['y_count']
-        min_x, min_y = self.obj.bed_mesh.bmc.mesh_min
-        max_x, max_y = self.obj.bed_mesh.bmc.mesh_max
         self.obj.toolhead.wait_moves()
         now_pos = self.obj.toolhead.get_position()
-        if (int(self.val.g29_cnt) % int(x_cnt)) == 0:
-            self._move(now_pos[:2] + [now_pos[2] + 2, now_pos[3]], self.cfg.g29_rdy_speed * 3)
-            self.shake_motor(self.cfg.shake_cnt)
-            self._move(now_pos[:2] + [now_pos[2], now_pos[3]], self.cfg.g29_rdy_speed * 3)
+        self.val.jump_probe_ready = False
+
         if self.val.g29_cnt == 0:
-            self.probe_ready()
             self.shake_motor(self.cfg.shake_cnt)
-            now_pos[2] = self.get_best_rdy_z(min_x, min_y, self.val.rdy_pos) + self.cfg.best_above_z
+            self.probe_ready()
+            now_pos[2] = self.get_best_rdy_z(now_pos[0], now_pos[1], self.val.rdy_pos) + self.cfg.best_above_z
+            self._move(now_pos, self.cfg.g29_xy_speed)        
+
+        if (int(self.val.g29_cnt) % int(x_cnt)) == 0:
+            self.shake_motor(self.cfg.shake_cnt)
             pass
-        now_pos[2] = self._probe_times(10, now_pos, self.cfg.g29_speed, self.cfg.bed_max_err, 0.06, self.cfg.min_hold, self.cfg.max_hold) \
-                                    + self.get_best_rdy_z(now_pos[0], now_pos[1], self.val.gap_pos) + self.cfg.fix_z_offset
+
+        now_pos[2] = self._probe_times(10, now_pos, self.cfg.g29_speed, self.cfg.bed_max_err, 0.06, self.cfg.min_hold, self.cfg.max_hold) + self.get_best_rdy_z(now_pos[0], now_pos[1], self.val.gap_pos) + self.cfg.fix_z_offset
+       
         self.val.g29_cnt += 1
         if self.val.g29_cnt == x_cnt * y_cnt:
             self.val.g29_cnt = 0
-            self._move([self.val.home_xy[0], self.val.home_xy[1], 10], self.cfg.g29_xy_speed)  
+            self._move([now_pos[0], now_pos[1], self.cfg.bed_max_err + 1], self.cfg.g29_rdy_speed) 
+            self._move([self.val.home_xy[0], self.val.home_xy[1], self.cfg.bed_max_err + 1], self.cfg.g29_xy_speed)  
+            home_z = self._probe_times(3, [self.val.home_xy[0], self.val.home_xy[1], self.cfg.bed_max_err + 1], 
+                                       self.cfg.g29_speed, self.cfg.bed_max_err * 2, 0.20, self.cfg.min_hold, self.cfg.max_hold)
+            self.pnt_msg('CHECK_STEP_LOST need=0, tri=%.2f' % home_z)
+            if home_z > 1.0:
+                raise self.obj.printer.command_error("""{"code":"key503", "msg":"run_G29_Z: Z-axis motor lost of step detected, Please restart the machine and try again"}""")
+
         return now_pos
 
     cmd_PRTOUCH_TEST_help = "Test the PR-Touch."
@@ -743,6 +765,7 @@ class PRTouchEndstopWrapper:
         speed = gcmd.get_float('SPEED', 1.0)
         min_hold = gcmd.get_int('MIN_HOLD', self.cfg.min_hold)
         max_hold = gcmd.get_int('MAX_HOLD', self.cfg.max_hold)
+        self._move([rdy_x, rdy_y, rdy_z], self.cfg.g29_xy_speed)
         self.probe_by_step([rdy_x, rdy_y, rdy_z], speed, 50, min_hold, max_hold, True)
         pass
 
@@ -776,7 +799,8 @@ class PRTouchEndstopWrapper:
         max_hold = gcmd.get_int('MAX_HOLD', self.cfg.max_hold)
         self.clear_nozzle(hot_min_temp, hot_max_temp, bed_max_temp, min_hold, max_hold)
 
-
+    def change_hot_min_temp(self, temp):
+        self.cfg.hot_min_temp = temp
 
 def load_config(config):
     prt = PRTouchEndstopWrapper(config)

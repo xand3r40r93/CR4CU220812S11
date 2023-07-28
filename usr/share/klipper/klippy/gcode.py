@@ -226,14 +226,15 @@ class GCodeDispatch:
         try:
             configfile = self.printer.lookup_object('configfile')
             print_stats = self.printer.load_object(configfile, 'print_stats')
+            temp_value = float(value.strip("\n").split("S")[-1])
             if key == "extruder" and print_stats and print_stats.state == "printing":
-                if float(value.strip("\n").split("S")[-1]) >= 240:
+                if temp_value >= 240:
                     self.run_script_from_command("M107 P1")
                     logging.info("Fan Off SET M107 P1")
-                else:
+                elif temp_value >= 170:
                     self.run_script_from_command("M106 P1 S255")
                     logging.info("Fan On SET M106 P1 S255")
-            if key == "extruder" and float(value.strip("\n").split("S")[-1]) < 170:
+            if key == "extruder" and temp_value < 170:
                 return
             if not os.path.exists(self.last_temperature_info):
                 from subprocess import call
@@ -244,7 +245,7 @@ class GCodeDispatch:
                     ret = json.loads(ret)
                 else:
                     ret = {}
-            ret[key] = float(value.strip("\n").split("S")[-1])
+            ret[key] = temp_value
             with open(self.last_temperature_info, "w") as f:
                 f.write(json.dumps(ret))
                 f.flush()
@@ -297,8 +298,7 @@ class GCodeDispatch:
         else:
             m = self.extended_r.match(gcmd.get_commandline())
         if m is None:
-            raise self.error("Malformed command '%s'"
-                             % (gcmd.get_commandline(),))
+            raise self.error("""{"code":"key513", "msg": "Malformed command '%s'", "values": ["%s"]}""" % (gcmd.get_commandline(), gcmd.get_commandline()))
         eargs = m.group('args')
         try:
             eparams = [earg.split('=', 1) for earg in shlex.split(eargs)]
@@ -307,8 +307,7 @@ class GCodeDispatch:
             gcmd._params.update(eparams)
             return gcmd
         except ValueError as e:
-            raise self.error("Malformed command '%s'"
-                             % (gcmd.get_commandline(),))
+            raise self.error("""{"code":"key514", "msg": "Malformed command args '%s'", "values": ["%s"]}""" % (gcmd.get_commandline(), str(e)))
     # G-Code special command handlers
     def cmd_default(self, gcmd):
         cmd = gcmd.get_command()
@@ -500,7 +499,7 @@ class GCodeIO:
         if self.pipe_is_active:
             try:
                 os.write(self.fd, (msg+"\n").encode())
-                if 'key3"' not in msg and "key" in msg:
+                if 'key506' not in msg and 'key507' not in msg and 'key3"' not in msg and "key" in msg:
                     reportInformation(msg)
             except os.error:
                 logging.exception("Write g-code response")

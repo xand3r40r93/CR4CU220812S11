@@ -3,7 +3,7 @@
 # Copyright (C) 2018  Kevin O'Connor <kevin@koconnor.net>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
-import os, logging, io
+import os, logging, io, json
 from .tool import reportInformation
 
 VALID_GCODE_EXTS = ['gcode', 'g', 'gco']
@@ -47,11 +47,15 @@ class VirtualSD:
         self.do_resume_status = False
         self.eepromWriteCount = 1
         self.fan_state = ""
+        self.gcode_layer_path = "/usr/data/creality/userdata/config/gcode_layer.json"
         self.user_print_refer_path = "/usr/data/creality/userdata/config/user_print_refer.json"
         self.print_file_name_path = "/usr/data/creality/userdata/config/print_file_name.json"
         self.print_first_layer = False
         self.first_layer_stop = False
         self.count_M204 = 0
+        self.layer = 0
+        self.layer_count = 0
+        self.is_continue_print = False
     def handle_shutdown(self):
         if self.work_timer is not None:
             self.must_pause_work = True
@@ -107,6 +111,8 @@ class VirtualSD:
             'file_position': self.file_position,
             'file_size': self.file_size,
             'first_layer_stop':  self.first_layer_stop,
+            'layer': self.layer,
+            'layer_count': self.layer_count
         }
     def file_path(self):
         if self.current_file:
@@ -135,6 +141,8 @@ class VirtualSD:
         self.first_layer_stop = False
         self.print_first_layer = False
         self.count_M204 = 0
+        self.layer = 0
+        self.layer_count = 0
         if self.current_file is not None:
             self.do_pause()
             self.current_file.close()
@@ -146,7 +154,6 @@ class VirtualSD:
             os.remove(self.print_file_name_path)
         call("sync", shell=True)
         try:
-            import json
             power_loss_switch = False
             if os.path.exists(self.user_print_refer_path):
                 with open(self.user_print_refer_path, "r") as f:
@@ -183,6 +190,8 @@ class VirtualSD:
             raise gcmd.error("SD busy")
         self._reset_file()
         filename = gcmd.get("FILENAME")
+        self.is_continue_print = gcmd.get("ISCONTINUEPRINT", False)
+        self.rm_power_loss_info()
         first_floor = gcmd.get("FIRST_FLOOR_PRINT", None)
         if first_floor is None or first_floor == False:
             self.print_first_layer = False
@@ -192,6 +201,20 @@ class VirtualSD:
             filename = filename[1:]
         self._load_file(gcmd, filename, check_subdirs=True)
         self.do_resume()
+    def rm_power_loss_info(self):
+        if not self.is_continue_print and os.path.exists(self.print_file_name_path):
+            try:
+                power_loss_switch = False
+                with open(self.user_print_refer_path, "r") as f:
+                    data = json.loads(f.read())
+                    power_loss_switch = data.get("power_loss", {}).get("switch", False)
+                bl24c16f = self.printer.lookup_object('bl24c16f') if "bl24c16f" in self.printer.objects and power_loss_switch else None
+                if power_loss_switch and bl24c16f:
+                    os.remove(self.print_file_name_path)
+                    self.gcode.run_script_from_command("EEPROM_WRITE_BYTE ADDR=1 VAL=255")
+                    logging.info("rm power_loss info success")
+            except Exception as err:
+                logging.error("rm power_loss info fail, err:%s" % err)
     def cmd_M20(self, gcmd):
         # List SD card
         files = self.get_file_list()
@@ -275,7 +298,7 @@ class VirtualSD:
     def getXYZE(self, file_path, file_position):
         result = {"X": 0, "Y": 0, "Z": 0, "E": 0}
         try:
-            import io, time
+            import io
             with io.open(file_path, "r", encoding="utf-8") as f:
                 f.seek(file_position)
                 while True:
@@ -310,12 +333,11 @@ class VirtualSD:
                         logging.info("get XYZE:%s" % str(result))
                         logging.info("power_loss get XYZE:%s" % str(result))
                         break
-                    time.sleep(0.001)
+                    self.reactor.pause(self.reactor.monotonic() + .001)
         except Exception as err:
             logging.exception(err)
         return result
     def get_print_temperature(self, file_path):
-        import json
         bed = 0
         extruder = 202.0
         if os.path.exists(self.gcode.last_temperature_info):
@@ -331,12 +353,64 @@ class VirtualSD:
         logging.info("power_loss get_print_temperature: bed:%s, extruder:%s" % (bed, extruder))
         return bed, extruder
 
+    def record_layer(self, layer):
+        """
+        record current print file layer
+        """
+        with open(self.gcode_layer_path, "w") as f:
+            f.write(json.dumps({"layer": layer}))
+            f.flush()
+            
+    def get_layer(self):
+        """
+        get last print file layer
+        """
+        layer = 0
+        if os.path.exists(self.gcode_layer_path):
+            try:
+                with open(self.gcode_layer_path, "r") as f:
+                    layer = int(json.loads(f.read()).get("layer"))
+            except Exception as err:
+                logging.error(err)
+                os.remove(self.gcode_layer_path)
+        return layer
+
+    def get_print_file_metadata(self, filename, filepath="/usr/data/printer_data/gcodes"):
+        from subprocess import check_output
+        result = {}
+        python_env = "/usr/share/klippy-env/bin/python3"
+        # -f gcode filename  -p gcode file dir
+        cmd = "%s /usr/share/klipper/klippy/extras/metadata.py -f '%s' -p %s" % (python_env, filename, filepath)
+        try:
+            result = json.loads(check_output(cmd, shell=True).decode("utf-8"))
+        except Exception as err:
+            logging.error(err)
+        return result
+    
+    def get_file_layer_count(self, filename):
+        filename = filename.split("/")[-1]
+        import math
+        layer_count = 0
+        result = self.get_print_file_metadata(filename)
+        if not result:
+            return layer_count
+        try:
+            layer_count = result.get("metadata").get("layer_count", 0)
+            first_layer_height = result.get("metadata").get("first_layer_height", 0)
+            object_height = result.get("metadata").get("object_height", 0)
+            layer_height = result.get("metadata").get("layer_height", 0)
+            if not layer_count and object_height > 0 and layer_height > 0:
+                layer_count = math.ceil((object_height - first_layer_height) / layer_height + 1)
+        except Exception as err:
+            logging.error(err)
+        return layer_count
+        
     # Background work timer
     def work_handler(self, eventtime):
         reportInformation("Start print, filename:%s" % self.current_file.name)
         logging.info("work_handler start print, filename:%s" % self.current_file.name)
         self.print_stats.note_start()
-        import json, time
+        import time
         from subprocess import check_output
         self.count_line = 0
         self.count_G1 = 0 
@@ -360,6 +434,7 @@ class VirtualSD:
         logging.info("delay_photography status: delay_photography_switch:%s, location:%s, frame:%s, interval:%s" % (
             delay_photography_switch, location, frame, interval
         ))
+        self.layer_count = self.get_file_layer_count(self.current_file.name)
         bl24c16f = self.printer.lookup_object('bl24c16f') if "bl24c16f" in self.printer.objects and power_loss_switch else None
         eepromState = True
         try:
@@ -375,7 +450,8 @@ class VirtualSD:
                         if power_loss_switch and bl24c16f:
                             bl24c16f.setEepromDisable()
             eepromState = bl24c16f.checkEepromFirstEnable() if power_loss_switch and bl24c16f else True
-            if power_loss_switch and bl24c16f and not self.do_resume_status and sameFileName and not eepromState:
+            if power_loss_switch and bl24c16f and not self.do_resume_status and sameFileName and not eepromState and self.is_continue_print:
+                self.is_continue_print = False
                 logging.info("power_loss start do_resume...")
                 logging.info("power_loss start print, filename:%s" % self.current_file.name)
                 pos = bl24c16f.eepromReadHeader()
@@ -384,6 +460,7 @@ class VirtualSD:
                 logging.info("power_loss print_info:%s" % str(print_info))
                 self.file_position = int(print_info.get("file_position", 0))
                 logging.info("power_loss file_position:%s" % self.file_position)
+                self.layer = self.get_layer()
                 gcode = self.printer.lookup_object('gcode')
                 temperature = self.get_print_temperature(self.current_file.name)
                 gcode.run_script("M140 S%s" % temperature[0])
@@ -391,13 +468,12 @@ class VirtualSD:
                 XYZE = self.getXYZE(self.current_file.name, self.file_position)
                 logging.info("power_loss XYZE:%s, file_position:%s  " % (str(XYZE), self.file_position))
                 if XYZE.get("Z") == 0:
-                    logging.error("power_loss gcode Z == 0 err-------------------------------------------")
+                    logging.error("power_loss gcode Z == 0 err")
                     from subprocess import call
                     if os.path.exists(self.print_file_name_path):
                         os.remove(self.print_file_name_path)
                     call("sync", shell=True)
                     try:
-                        import json
                         power_loss_switch = False
                         if os.path.exists(self.user_print_refer_path):
                             with open(self.user_print_refer_path, "r") as f:
@@ -460,6 +536,8 @@ class VirtualSD:
                     self.first_layer_stop = False
                     self.print_first_layer = False
                     self.count_M204 = 0
+                    self.layer = 0
+                    self.layer_count = 0
                     break
                 lines = data.split('\n')
                 lines[0] = partial_input + lines[0]
@@ -518,7 +596,15 @@ class VirtualSD:
                     if power_loss_switch and bl24c16f:
                         gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
                     self.fan_state = ""
-                
+                elif line.startswith("END_PRINT"):
+                    if os.path.exists(self.print_file_name_path):
+                        os.remove(self.print_file_name_path)
+                    if power_loss_switch and bl24c16f:
+                        self.gcode.run_script("EEPROM_WRITE_BYTE ADDR=1 VAL=255")
+                for layer_key in LAYER_KEYS:
+                    if line.startswith(layer_key):
+                        self.layer += 1
+                        self.record_layer(self.layer)
                 if self.print_first_layer and self.count_G1 >= 20:
                     for layer_key in LAYER_KEYS:
                         if line.startswith(layer_key):
@@ -592,9 +678,13 @@ class VirtualSD:
                     self.gcode.run_script(self.on_error_gcode.render())
                 except:
                     logging.exception("virtual_sdcard on_error")
+                self.layer = 0
+                self.layer_count = 0
                 break
             except:
                 logging.exception("virtual_sdcard dispatch")
+                self.layer = 0
+                self.layer_count = 0
                 break
             self.cmd_from_sd = False
             self.file_position = self.next_file_position

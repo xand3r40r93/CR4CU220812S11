@@ -1,4 +1,4 @@
-ota_version=1.2.9.12
+ota_version=1.2.9.14
 ota_board_name=CR4CU220812S11
-ota_compile_time=2023 04.26 18:04:34
+ota_compile_time=2023 05.18 16:46:50
 ota_site=http://192.168.43.52/ota/board_test

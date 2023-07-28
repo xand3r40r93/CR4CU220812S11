@@ -152,15 +152,71 @@ class ControlBangBang:
         self.heater_max_power = heater.get_max_power()
         self.max_delta = config.getfloat('max_delta', 2.0, above=0.)
         self.heating = False
+        self.long_temp =False
+        self.old_temp = 0.0
+        self.cnt_temp = 0
+        self.prev_temp = AMBIENT_TEMP
+        self.temp_coff = 1.
+        self.diff_tempa = 0
+        self.diff_tempb = 0
     def temperature_update(self, read_time, temp, target_temp):
-        if self.heating and temp >= target_temp+self.max_delta:
-            self.heating = False
-        elif not self.heating and temp <= target_temp-self.max_delta:
-            self.heating = True
+        if (temp + 5.0) < target_temp:
+            self.long_temp = True
+            self.old_temp = 0.0
+            self.cnt_temp = 0
+        if target_temp >= 20 and target_temp<=120:
+            if temp + 0.7 > target_temp:
+                self.long_temp =False
+            if self.long_temp:
+                if self.old_temp <= 0.01 or self.old_temp < temp:
+                    self.old_temp = temp
+                    self.cnt_temp = 0
+                    self.diff_tempa = 16.1 + (119-16.1)/100*(target_temp-20)
+                    self.diff_tempb = 16.3 + (119.5-16.3)/100*(target_temp-20)
+                elif self.old_temp > temp:
+                    self.cnt_temp = self.cnt_temp + 1
+                    if self.cnt_temp > 10:
+                        self.long_temp =False
+            else:
+                self.diff_tempa = 19.1 + (119.7-19.1)/100*(target_temp-20)
+                self.diff_tempb = 19.3 + (120.2-19.3)/100*(target_temp-20)
+            if self.heating and temp >= self.diff_tempb:
+                self.heating = False
+            elif not self.heating and temp <= self.diff_tempa:
+                self.heating = True
+        else:
+            if self.heating and temp >= target_temp:
+                self.heating = False
+            elif not self.heating and temp <= target_temp-self.max_delta:
+                self.heating = True
         if self.heating:
-            self.heater.set_pwm(read_time, self.heater_max_power)
+            if self.prev_temp > 0.1:
+                if self.prev_temp - target_temp > 3:
+                    self.temp_coff = 0.3 * self.temp_coff
+                elif self.prev_temp - target_temp > 2:
+                    self.temp_coff = 0.5 *self.temp_coff
+                elif self.prev_temp - target_temp > 1.5:
+                    self.temp_coff = 0.65 * self.temp_coff
+                elif self.prev_temp - target_temp > 1:
+                    self.temp_coff = 0.8 * self.temp_coff
+                elif self.prev_temp < target_temp:
+                    self.temp_coff = 1.5 * self.temp_coff
+            if (temp + 1.5) < target_temp:
+                self.temp_coff = 1.0
+            if self.temp_coff < 0.3:
+                self.temp_coff = 0.3
+            elif self.temp_coff > 1.0:
+                self.temp_coff = 1.0
+            self.prev_temp = 0.
+            self.heater.set_pwm(read_time, self.heater_max_power * self.temp_coff)
         else:
             self.heater.set_pwm(read_time, 0.)
+            if target_temp > 0.1:
+                if self.prev_temp < temp:
+                    self.prev_temp = temp
+            else:
+                self.prev_temp = 0.
+                self.temp_coff = 1.0
     def check_busy(self, eventtime, smoothed_temp, target_temp):
 
         return smoothed_temp < target_temp-self.max_delta
@@ -265,6 +321,8 @@ class PrinterHeaters:
         webhooks.register_endpoint("breakheater", self._handle_breakheater)
         self.can_break=False
         self.can_break_flag = 0
+        self.extruder_temperature_wait = False
+        self.bed_temperature_wait = False
     def _handle_breakheater(self,web_request):
         reactor = self.printer.get_reactor()
         for heater in self.heaters.values():
@@ -326,7 +384,9 @@ class PrinterHeaters:
         self.gcode_id_to_sensor[gcode_id] = psensor
     def get_status(self, eventtime):
         return {'available_heaters': self.available_heaters,
-                'available_sensors': self.available_sensors}
+                'available_sensors': self.available_sensors,
+                'extruder_temperature_wait': self.extruder_temperature_wait,
+                'bed_temperature_wait': self.bed_temperature_wait}
     def turn_off_all_heaters(self, print_time=0.):
         for heater in self.heaters.values():
             heater.set_temp(0.)
@@ -364,6 +424,10 @@ class PrinterHeaters:
         eventtime = reactor.monotonic()
         self.can_break_flag = 1
         self.can_break = False
+        if "heater_bed" in heater.name:
+            self.bed_temperature_wait = True
+        else:
+            self.extruder_temperature_wait = True
         while not self.printer.is_shutdown() and heater.check_busy(eventtime) :
             if self.can_break:
                 self.can_break_flag = 2
@@ -379,6 +443,10 @@ class PrinterHeaters:
             eventtime = reactor.pause(eventtime + 1.)
         if self.can_break_flag != 2:
             self.can_break_flag = 3
+        if "heater_bed" in heater.name:
+            self.bed_temperature_wait = False
+        else:
+            self.extruder_temperature_wait = False
     def set_temperature(self, heater, temp, wait=False):
         toolhead = self.printer.lookup_object('toolhead')
         toolhead.register_lookahead_callback((lambda pt: None))

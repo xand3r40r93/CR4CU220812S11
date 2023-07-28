@@ -5,6 +5,7 @@
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging, math, os, time
 from . import shaper_calibrate
+from subprocess import call
 
 class TestAxis:
     def __init__(self, axis=None, vib_dir=None):
@@ -312,6 +313,16 @@ class ResonanceTester:
                     calibration_data[axis], all_shapers)
             gcmd.respond_info(
                     "Shaper calibration data written to %s file" % (csv_name,))
+        gcode = self.printer.lookup_object('gcode')
+        gcode.run_script_from_command("CXSAVE_CONFIG")
+        call("sync", shell=True)
+        input_shaper = self.printer.lookup_object("input_shaper", None)
+        if not input_shaper:
+            config = configfile.read_main_config()
+            self.printer.reload_object(config, "input_shaper")
+            gcode.run_script_from_command("UPDATE_INPUT_SHAPER")
+            input_shaper = self.printer.lookup_object("input_shaper", None)
+            input_shaper.enable_shaping()
         gcmd.respond_info(
             "The SAVE_CONFIG command will update the printer config file\n"
             "with these parameters and restart the printer.")

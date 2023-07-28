@@ -44,7 +44,8 @@ class CUSTOM_MACRO:
         self.gcode.run_script_from_command('G28')
         self.gcode.run_script_from_command('NOZZLE_CLEAR HOT_MIN_TEMP=%d HOT_MAX_TEMP=%d BED_MAX_TEMP=%d' % (self.g28_ext_temp, self.extruder_temp, self.bed_temp))
         if self.leveling_calibration == 1:
-            self.gcode.run_script_from_command('CHECK_BED_MESH AUTO_G29=1')
+            self.gcode.run_script_from_command('BED_MESH_CLEAR')
+        self.gcode.run_script_from_command('CHECK_BED_MESH AUTO_G29=1')
         pass
 
     cmd_CX_CLEAN_CALIBRATION_FLAGS_help = "Clean calibration flags"

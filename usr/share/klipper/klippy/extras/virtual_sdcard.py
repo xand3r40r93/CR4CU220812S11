@@ -275,7 +275,7 @@ class VirtualSD:
     def getXYZE(self, file_path, file_position):
         result = {"X": 0, "Y": 0, "Z": 0, "E": 0}
         try:
-            import io
+            import io, time
             with io.open(file_path, "r", encoding="utf-8") as f:
                 f.seek(file_position)
                 while True:
@@ -310,6 +310,7 @@ class VirtualSD:
                         logging.info("get XYZE:%s" % str(result))
                         logging.info("power_loss get XYZE:%s" % str(result))
                         break
+                    time.sleep(0.001)
         except Exception as err:
             logging.exception(err)
         return result

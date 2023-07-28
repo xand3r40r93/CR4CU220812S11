@@ -641,7 +641,7 @@ class PRTouchEndstopWrapper:
                     self.send_wave_tri(m, tmp_hx711_vs[m])
                 up_min_cnt, up_all_cnt, deal_sta = self._cal_min_z(rdy_pos[2], tmp_hx711_vs[i])
                 if up_after:
-                    self.obj.dirzctl.check_and_run(1, int(step_us / 4), int(up_all_cnt))
+                    self.obj.dirzctl.check_and_run(1, int(step_us / 6), int(up_all_cnt))
                 return self.val.out_index, self.val.out_val_mm, deal_sta
             self.obj.hx711s.delay_s(0.005)
         return self.val.out_index, self.val.out_val_mm, True
@@ -791,3 +791,5 @@ def load_config(config):
 # CHECK_BED_MESH AUTO_G29=0
 # MEASURE_GAP_TEST INDEX=0
 # FORCE_MOVE STEPPER=stepper_x DISTANCE=10 VELOCITY=5
+
+# g28_sta0_speed、g28_sta1_speed和g29_speed都改为1.8

@@ -92,8 +92,12 @@ class PauseResume:
         if not eepromState:
             response["eeprom_state"] = True
         print_stats = self.printer.lookup_object('print_stats', None)
-        if response["file_state"] == True and response["eeprom_state"] == True and print_stats:
+        if response["file_state"] == True and response["eeprom_state"] == True and print_stats and print_stats.state == "standby":
             print_stats.power_loss = 1
+        if print_stats and print_stats.state != "standby":
+            response["file_state"] = False
+            response["eeprom_state"] = False
+            logging.info("current printer state:%s" % print_stats.state)
         web_request.send(response)
         return response
     

@@ -125,6 +125,28 @@ class Printer:
             raise self.config_error("Unable to load module '%s'" % (section,))
         self.objects[section] = init_func(config.getsection(section))
         return self.objects[section]
+    def reload_object(self, config, section, default=configfile.sentinel):
+        module_parts = section.split()
+        module_name = module_parts[0]
+        py_name = os.path.join(os.path.dirname(__file__),
+                               'extras', module_name + '.py')
+        py_dirname = os.path.join(os.path.dirname(__file__),
+                                  'extras', module_name, '__init__.py')
+        if not os.path.exists(py_name) and not os.path.exists(py_dirname):
+            if default is not configfile.sentinel:
+                return default
+            raise self.config_error("""{"code":"key124", "msg": "Unable to load module '%s'", "values": ["%s"]}""" % (section, section))
+        mod = importlib.import_module('extras.' + module_name)
+        init_func = 'load_config'
+        if len(module_parts) > 1:
+            init_func = 'load_config_prefix'
+        init_func = getattr(mod, init_func, None)
+        if init_func is None:
+            if default is not configfile.sentinel:
+                return default
+            raise self.config_error("Unable to load module '%s'" % (section,))
+        self.objects[section] = init_func(config.getsection(section))
+        return self.objects[section]
     def _read_config(self):
         self.objects['configfile'] = pconfig = configfile.PrinterConfig(self)
         config = pconfig.read_main_config()
@@ -331,39 +353,15 @@ def arg_dictionary(option, opt_str, value, parser):
     parser.values.dictionary[key] = fname
 
 def heartbeatPacket():
-    from subprocess import check_output, call
-    logFilePath = "/usr/data/printer_data/logs/klippy.log"
+    from subprocess import call
     mainPath = "/usr/share/klipper/klippy/mainMips"
-    logGrepCmd = "tail -n 200 %s| grep 'ERROR'" % logFilePath
-    msg = ""
-    lastMsg = ""
     if not os.path.exists(mainPath):
         return
     else:
         os.chmod(mainPath, 0o700)
     while True:
-        if os.path.exists(logFilePath):
-            try:
-                ret = check_output(logGrepCmd, shell=True).decode("utf-8")
-            except Exception as err:
-                ret = ""
-                msg = ""
-            if len(ret) > 5:
-                msg = ret.split("\n")[-2]
-                if msg == lastMsg or "++++++++++++++msg:B" in msg:
-                    # if cur msg==lastMsg, stop send the error msg;when printer is heating up, stop send the error msg
-                    msg = ""
-                else:
-                    cmd = "%s -server=true -msg='%s'" % (mainPath, msg)
-                    call(cmd, shell=True)
-                    # update lastMsg
-                    lastMsg = msg
-                    time.sleep(5)
-                    continue
-        cmd = "%s -server=true -msg='%s'" % (mainPath, msg)
+        cmd = "%s -server=true -msg='Heartbeat'" % mainPath
         call(cmd, shell=True)
-        # update lastMsg
-        lastMsg = msg
         time.sleep(21600) 
 
 def main():

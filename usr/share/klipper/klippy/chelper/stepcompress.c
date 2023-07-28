@@ -210,11 +210,11 @@ check_line(struct stepcompress *sc, struct step_move move)
 {
     if (!CHECK_LINES)
         return 0;
-    // if(move.interval >= 0x80000000) {
-    //     errorf("stepcompress o=%d i=%d c=%d a=%d: lxc Invalid sequence"
-    //            , sc->oid, move.interval, move.count, move.add);
-    //     move.interval = pre_interval;
-    // }
+    if(move.interval >= 0x80000000) {
+        errorf("stepcompress o=%d i=%d c=%d a=%d: lxc Invalid sequence"
+               , sc->oid, move.interval, move.count, move.add);
+        move.interval = 0xffffffff - move.interval + 1;
+    }
 
     if (!move.count || (!move.interval && !move.add && move.count > 1)
         || move.interval >= 0x80000000) {
@@ -237,6 +237,14 @@ check_line(struct stepcompress *sc, struct step_move move)
     for (i=0; i<move.count; i++) {
         struct points point = minmax_point(sc, sc->queue_pos + i);
         p += interval;
+        if (point.minp < 0) {
+            int32_t itemp = -point.minp;
+            point.minp = -point.maxp;
+            point.maxp = itemp;
+            errorf("lxc stepcompress o=%d i=%d c=%d a=%d: Point %d: %d not in %d:%d"
+                   , sc->oid, move.interval, move.count, move.add
+                   , i+1, p, -point.maxp, -point.minp);
+        }        
         if (p < point.minp || p > point.maxp) {
             errorf("stepcompress o=%d i=%d c=%d a=%d: Point %d: %d not in %d:%d"
                    , sc->oid, move.interval, move.count, move.add

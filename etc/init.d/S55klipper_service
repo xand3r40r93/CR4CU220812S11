@@ -118,7 +118,7 @@ copy_config()
 
         "Nebula Pad")
             # config_dir=Nebula/Ender3S1
-            config_dir=Nebula/Ender-3\ pro
+            config_dir=Nebula/Ender-3\ Pro
             gcode_dir=
             ;;
 

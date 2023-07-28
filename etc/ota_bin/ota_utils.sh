@@ -320,8 +320,10 @@ mmc_check_size()
     fi
 
     local mmc_size2
-    let mmc_size2=mmc_size*percent/100
-    if [ $mmc_size2 -lt $img_size ]; then
+    let mmc_size2=mmc_size/1000*percent/100
+    local img_size2
+    let img_size2=img_size/1000
+    if [ $mmc_size2 -lt $img_size2 ]; then
         echo "mmc size2 less than require size: $mmc_size $img_size $mmc_size2 $percent" 1>&2
         return 1
     fi

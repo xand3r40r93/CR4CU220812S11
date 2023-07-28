@@ -171,15 +171,19 @@ class ControlBangBang:
                 if self.old_temp <= 0.01 or self.old_temp < temp:
                     self.old_temp = temp
                     self.cnt_temp = 0
-                    self.diff_tempa = 16.1 + (119-16.1)/100*(target_temp-20)
-                    self.diff_tempb = 16.3 + (119.5-16.3)/100*(target_temp-20)
+                    # self.diff_tempa = 16.1 + (119-16.1)/100.*(target_temp-20.0)
+                    # self.diff_tempb = 16.3 + (119.5-16.3)/100.*(target_temp-20.0)
+                    self.diff_tempa = 16.1 + 1.029 * (target_temp-20.0)
+                    self.diff_tempb = 16.3 + 1.032 * (target_temp-20.0)
                 elif self.old_temp > temp:
                     self.cnt_temp = self.cnt_temp + 1
                     if self.cnt_temp > 10:
                         self.long_temp =False
             else:
-                self.diff_tempa = 19.1 + (119.7-19.1)/100*(target_temp-20)
-                self.diff_tempb = 19.3 + (120.2-19.3)/100*(target_temp-20)
+                # self.diff_tempa = 19.1 + (119.7-19.1)/100.*(target_temp-20.0)
+                # self.diff_tempb = 19.3 + (120.2-19.3)/100.*(target_temp-20.0)
+                self.diff_tempa = 19.1 + 1.006 * (target_temp-20.0)
+                self.diff_tempb = 19.3 + 1.009 * (target_temp-20.0)
             if self.heating and temp >= self.diff_tempb:
                 self.heating = False
             elif not self.heating and temp <= self.diff_tempa:
@@ -191,13 +195,13 @@ class ControlBangBang:
                 self.heating = True
         if self.heating:
             if self.prev_temp > 0.1:
-                if self.prev_temp - target_temp > 3:
+                if self.prev_temp - target_temp > 3.:
                     self.temp_coff = 0.3 * self.temp_coff
-                elif self.prev_temp - target_temp > 2:
+                elif self.prev_temp - target_temp > 2.:
                     self.temp_coff = 0.5 *self.temp_coff
                 elif self.prev_temp - target_temp > 1.5:
                     self.temp_coff = 0.65 * self.temp_coff
-                elif self.prev_temp - target_temp > 1:
+                elif self.prev_temp - target_temp > 1.:
                     self.temp_coff = 0.8 * self.temp_coff
                 elif self.prev_temp < target_temp:
                     self.temp_coff = 1.5 * self.temp_coff

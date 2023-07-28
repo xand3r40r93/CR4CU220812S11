@@ -17,6 +17,8 @@ class CUSTOM_MACRO:
         self.gcode.register_command("CX_PRINT_LEVELING_CALIBRATION", self.cmd_CX_PRINT_LEVELING_CALIBRATION, desc=self.cmd_CX_PRINT_LEVELING_CALIBRATION_help)
         self.gcode.register_command("CX_CLEAN_CALIBRATION_FLAGS", self.cmd_CX_CLEAN_CALIBRATION_FLAGS, desc=self.cmd_CX_CLEAN_CALIBRATION_FLAGS_help)
         self.gcode.register_command("CX_PRINT_DRAW_ONE_LINE", self.cmd_CX_PRINT_DRAW_ONE_LINE, desc=self.cmd_CX_PRINT_DRAW_ONE_LINE_help)
+        self.gcode.register_command("CX_ROUGH_G28", self.cmd_CX_ROUGH_G28, desc=self.cmd_CX_ROUGH_G28_help)
+        self.gcode.register_command("CX_NOZZLE_CLEAR", self.cmd_CX_NOZZLE_CLEAR, desc=self.cmd_CX_NOZZLE_CLEAR_help)
         self.default_extruder_temp = config.getfloat("default_extruder_temp", default=240.0)
         self.default_bed_temp = config.getfloat("default_bed_temp", default=50.0)
         self.g28_ext_temp = config.getfloat("g28_ext_temp", default=140.0)
@@ -34,27 +36,9 @@ class CUSTOM_MACRO:
             'g28_ext_temp': self.g28_ext_temp
         }
 
-    cmd_CX_PRINT_LEVELING_CALIBRATION_help = "Start Print function,three parameter:EXTRUDER_TEMP(180-300),BED_TEMP(30-100),CALIBRATION(0 or 1)"
+    cmd_CX_PRINT_LEVELING_CALIBRATION_help = "Start Print function,three parameter:EXTRUDER_TEMP(180-300),BED_TEMP(0-100),CALIBRATION(0 or 1)"
     def cmd_CX_PRINT_LEVELING_CALIBRATION(self, gcmd):
-        self.extruder_temp = gcmd.get_float('EXTRUDER_TEMP', default=self.default_extruder_temp, minval=180.0, maxval=320.0)
-        self.g28_ext_temp = self.extruder_temp - 70
-        if self.g28_ext_temp > 200.0:
-            self.g28_ext_temp = 200.0
-        try:
-            self.prtouch = self.printer.lookup_object('prtouch_v2')
-        except:
-            self.prtouch = self.printer.lookup_object('prtouch')
-            gcmd.respond_info("self.prtouch = prtouch")
-        self.prtouch.change_hot_min_temp(self.g28_ext_temp)
-        self.bed_temp = gcmd.get_float('BED_TEMP', default=self.default_bed_temp, minval=30.0, maxval=130.0)
-        self.leveling_calibration = gcmd.get_int('LEVELING_CALIBRATION', default=1, minval=0, maxval=1)
-        self.gcode.run_script_from_command('M104 S%d' % (self.g28_ext_temp))
-        self.gcode.run_script_from_command('M140 S%d' % (self.bed_temp))
-        self.gcode.run_script_from_command('M204 S500')
-        self.gcode.run_script_from_command('G28')
-        self.gcode.run_script_from_command('NOZZLE_CLEAR HOT_MIN_TEMP=%d HOT_MAX_TEMP=%d BED_MAX_TEMP=%d' % (self.g28_ext_temp, self.extruder_temp - 20, self.bed_temp))
-        if self.leveling_calibration == 1:
-            self.gcode.run_script_from_command('CHECK_BED_MESH AUTO_G29=1')
+        self.gcode.run_script_from_command('CHECK_BED_MESH AUTO_G29=1')
         pass
 
     cmd_CX_CLEAN_CALIBRATION_FLAGS_help = "Clean calibration flags"
@@ -87,7 +71,7 @@ class CUSTOM_MACRO:
             self.gcode.run_script_from_command('M204 S12000')
             self.gcode.run_script_from_command('G21')
             self.gcode.run_script_from_command('SET_VELOCITY_LIMIT ACCEL_TO_DECEL=6000')
-            self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE ADVANCE=0.04')
+            # self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE ADVANCE=0.04')
             self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE SMOOTH_TIME=0.04')
             self.gcode.run_script_from_command('M220 S100')
             self.gcode.run_script_from_command('M221 S100')
@@ -106,7 +90,31 @@ class CUSTOM_MACRO:
             self.gcode.run_script_from_command('G21')
         pass
 
-    
+    cmd_CX_ROUGH_G28_help = "rough G28"
+    def cmd_CX_ROUGH_G28(self, gcmd):
+        self.extruder_temp = gcmd.get_float('EXTRUDER_TEMP', default=self.default_extruder_temp, minval=180.0, maxval=320.0)
+        self.g28_ext_temp = self.extruder_temp - 70
+        if self.g28_ext_temp > 200.0:
+            self.g28_ext_temp = 200.0
+        try:
+            self.prtouch = self.printer.lookup_object('prtouch_v2')
+        except:
+            self.prtouch = self.printer.lookup_object('prtouch')
+            gcmd.respond_info("self.prtouch = prtouch")
+        self.prtouch.change_hot_min_temp(self.g28_ext_temp)
+        self.bed_temp = gcmd.get_float('BED_TEMP', default=self.default_bed_temp, minval=0.0, maxval=130.0)
+        self.leveling_calibration = gcmd.get_int('LEVELING_CALIBRATION', default=1, minval=0, maxval=1)
+        self.gcode.run_script_from_command('M104 S%d' % (self.g28_ext_temp))
+        self.gcode.run_script_from_command('M140 S%d' % (self.bed_temp))
+        self.gcode.run_script_from_command('M204 S500')
+        self.gcode.run_script_from_command('G28')
+        # self.gcode.run_script_from_command('NOZZLE_CLEAR HOT_MIN_TEMP=%d HOT_MAX_TEMP=%d BED_MAX_TEMP=%d' % (self.g28_ext_temp, self.extruder_temp - 20, self.bed_temp))
+        pass
+
+    cmd_CX_NOZZLE_CLEAR_help = "nozzle clear with temperature"
+    def cmd_CX_NOZZLE_CLEAR(self, gcmd):
+        self.gcode.run_script_from_command('NOZZLE_CLEAR HOT_MIN_TEMP=%d HOT_MAX_TEMP=%d BED_MAX_TEMP=%d' % (self.g28_ext_temp, self.extruder_temp - 20, self.bed_temp))
+        pass
 
 def load_config(config):
     return CUSTOM_MACRO(config)

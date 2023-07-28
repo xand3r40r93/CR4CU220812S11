@@ -249,7 +249,7 @@ class PrinterHoming:
         endstops = [(mcu_probe, "probe")]
         hmove = HomingMove(self.printer, endstops)
         try:
-            epos = self.printer.lookup_object('prtouch').run_G29_Z()
+            epos = self.printer.lookup_object('probe').mcu_probe.run_G29_Z()
             # epos = hmove.homing_move(pos, speed, probe_pos=True)
         except self.printer.command_error:
             if self.printer.is_shutdown():
@@ -296,7 +296,7 @@ class PrinterHoming:
                     homing_state.set_axes([a])
                     kin.home(homing_state)
                 else:
-                    self.printer.lookup_object('prtouch').run_G28_Z()
+                    self.printer.lookup_object('probe').mcu_probe.run_G28_Z()
             # kin.home(homing_state)
         except self.printer.command_error:
             if self.printer.is_shutdown():

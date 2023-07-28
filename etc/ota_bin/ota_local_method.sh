@@ -152,16 +152,28 @@ local_on_ota_data_processed()
     local size=$1
     local n=
     local total_size=
+    local total_size2=
 
     let total_size=ota_kernel_size+ota_rootfs_size+ota_rtos_size
     let n=size+ota_saved_size
-    let n=n*100/total_size
+
+    if [ $n == $total_size ]; then
+        n=100
+    else
+        let n=n/1000
+        let total_size2=total_size/1000
+        let n=n*100/total_size2
+        if [ $n == 100 ]; then
+            n=99
+        fi
+    fi
 
     if [ "$2" = "done" ]; then
         let ota_saved_size=ota_saved_size+size
     fi
 
     echo "ota: data processed: $n% $size $total_size" 1>&2
+
     local_ota_cb process $n
 
 }

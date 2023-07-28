@@ -376,7 +376,7 @@ class PRTouchEndstopWrapper:
         self._set_bed_temps(temp=bed_max_temp, wait=True, err=5)
 
         self._move(self.val.home_xy + [10], self.cfg.g29_xy_speed)
-        self.obj.gcode.run_script_from_command('G28 Z')
+        # self.obj.gcode.run_script_from_command('G28 Z')
         pass
 
     def measure_gap(self, zero_z):
@@ -710,7 +710,7 @@ class PRTouchEndstopWrapper:
             out_mms.append(o_mm0)
         out_mms.sort()
         self.pnt_array('G28_ZS = ', out_mms, len(out_mms))
-        if math.fabs(out_mms[2]) > 1.0:
+        if math.fabs(out_mms[3] - out_mms[1]) > 5.0:
              raise self.obj.printer.command_error("""{"code":"key504", "msg":"run_G28_Z: Homing Z failure, During zeroing, please place the machine on a stable platform and do not touch the hot bed."}""")
         self.obj.toolhead.set_position(now_pos[:2] + [now_pos[2] - out_mms[2] - self.cfg.self_z_offset, now_pos[3]], homing_axes=[2])
 

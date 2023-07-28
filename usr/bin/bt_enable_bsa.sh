@@ -1,6 +1,6 @@
 #!/bin/sh
 tty_dev=/dev/ttyS0
-firmware_path=/lib/firmware/bt_bcm/BCM4343A1_001.002.009.0077.0393.hcd
+firmware_path=/lib/firmware/bt_bcm/BCM4343A1_001.002.009.1010.1030.hcd
 
 killall bsa_server
 

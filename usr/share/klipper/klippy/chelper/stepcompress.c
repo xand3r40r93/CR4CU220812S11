@@ -215,6 +215,11 @@ check_line(struct stepcompress *sc, struct step_move move)
                , sc->oid, move.interval, move.count, move.add);
         move.interval = 0xffffffff - move.interval + 1;
     }
+    if(move.count >= 0x8000) {
+        errorf("stepcompress o=%d i=%d c=%d a=%d: lxc Invalid sequence"
+               , sc->oid, move.interval, move.count, move.add);
+        move.count = 0xffff - move.count + 1;
+    }
 
     if (!move.count || (!move.interval && !move.add && move.count > 1)
         || move.interval >= 0x80000000) {

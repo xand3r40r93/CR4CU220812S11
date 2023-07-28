@@ -4,7 +4,7 @@ build_time_vars = {'ABIFLAGS': '',
  'AIX_GENUINE_CPLUSPLUS': 0,
  'ALT_SOABI': 0,
  'ANDROID_API_LEVEL': 0,
- 'AR': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-ar',
+ 'AR': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-ar',
  'ARFLAGS': 'rcs',
  'BASECFLAGS': '-Wno-unused-result -Wsign-compare',
  'BASECPPFLAGS': '',
@@ -12,30 +12,30 @@ build_time_vars = {'ABIFLAGS': '',
  'BINDIR': '/usr/bin',
  'BINLIBDEST': '/usr/lib/python3.8',
  'BLDLIBRARY': '-L. -lpython3.8',
- 'BLDSHARED': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc '
+ 'BLDSHARED': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc '
               '-shared',
  'BUILDEXE': '',
  'BUILDPYTHON': 'python',
  'BUILD_GNU_TYPE': 'x86_64-pc-linux-gnu',
  'BYTESTR_DEPS': '\\',
- 'CC': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
+ 'CC': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
  'CCSHARED': '-fPIC',
  'CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall '
-           '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64  '
-           '-Os',
+           '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 '
+           '-D__USE_TIME_BITS64  -Os',
  'CFLAGSFORSHARED': '-fPIC',
  'CFLAGS_ALIASING': '',
  'CFLAGS_NODIST': '',
  'CONFIGFILES': 'configure configure.ac acconfig.h pyconfig.h.in '
                 'Makefile.pre.in',
  'CONFIGURE_CFLAGS': '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                     '-D_FILE_OFFSET_BITS=64  -Os',
+                     '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64  -Os',
  'CONFIGURE_CFLAGS_NODIST': '-std=c99 -Wextra -Wno-unused-result '
                             '-Wno-unused-parameter '
                             '-Wno-missing-field-initializers '
                             '-Werror=implicit-function-declaration',
  'CONFIGURE_CPPFLAGS': '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                       '-D_FILE_OFFSET_BITS=64',
+                       '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64',
  'CONFIGURE_LDFLAGS': '',
  'CONFIGURE_LDFLAGS_NODIST': '',
  'CONFIG_ARGS': "'--target=mipsel-buildroot-linux-gnu' "
@@ -57,23 +57,23 @@ build_time_vars = {'ABIFLAGS': '',
                 "'build_alias=x86_64-pc-linux-gnu' "
                 "'host_alias=mipsel-buildroot-linux-gnu' "
                 "'target_alias=mipsel-buildroot-linux-gnu' "
-                "'CC=/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc' "
+                "'CC=/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc' "
                 "'CFLAGS=-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE "
-                "-D_FILE_OFFSET_BITS=64  -Os  ' 'LDFLAGS=' "
+                "-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64  -Os  ' 'LDFLAGS=' "
                 "'CPPFLAGS=-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE "
-                "-D_FILE_OFFSET_BITS=64' "
-                "'CPP=/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-cpp' "
-                "'PKG_CONFIG=/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/pkg-config'",
+                "-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64' "
+                "'CPP=/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-cpp' "
+                "'PKG_CONFIG=/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/pkg-config'",
  'CONFINCLUDEDIR': '/usr/include',
  'CONFINCLUDEPY': '/usr/include/python3.8',
  'COREPYTHONPATH': '',
- 'COVERAGE_INFO': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/coverage.info',
- 'COVERAGE_REPORT': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/lcov-report',
+ 'COVERAGE_INFO': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/coverage.info',
+ 'COVERAGE_REPORT': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/lcov-report',
  'COVERAGE_REPORT_OPTIONS': '--no-branch-coverage --title "CPython lcov '
                             'report"',
  'CPPFLAGS': '-I. -I./Include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-             '-D_FILE_OFFSET_BITS=64',
- 'CXX': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-g++',
+             '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64',
+ 'CXX': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-g++',
  'DESTDIRS': '/usr /usr/lib /usr/lib/python3.8 /usr/lib/python3.8/lib-dynload',
  'DESTLIB': '/usr/lib/python3.8',
  'DESTPATH': '',
@@ -147,7 +147,7 @@ build_time_vars = {'ABIFLAGS': '',
  'HAVE_CONFSTR': 1,
  'HAVE_CONIO_H': 0,
  'HAVE_COPYSIGN': 1,
- 'HAVE_COPY_FILE_RANGE': 0,
+ 'HAVE_COPY_FILE_RANGE': 1,
  'HAVE_CRYPT_H': 1,
  'HAVE_CRYPT_R': 1,
  'HAVE_CTERMID': 1,
@@ -317,7 +317,7 @@ build_time_vars = {'ABIFLAGS': '',
  'HAVE_MADVISE': 1,
  'HAVE_MAKEDEV': 1,
  'HAVE_MBRTOWC': 1,
- 'HAVE_MEMFD_CREATE': 0,
+ 'HAVE_MEMFD_CREATE': 1,
  'HAVE_MEMORY_H': 1,
  'HAVE_MEMRCHR': 1,
  'HAVE_MKDIRAT': 1,
@@ -519,9 +519,9 @@ build_time_vars = {'ABIFLAGS': '',
  'HAVE_UTIME_H': 1,
  'HAVE_UUID_CREATE': 0,
  'HAVE_UUID_ENC_BE': 0,
- 'HAVE_UUID_GENERATE_TIME_SAFE': 1,
+ 'HAVE_UUID_GENERATE_TIME_SAFE': 0,
  'HAVE_UUID_H': 0,
- 'HAVE_UUID_UUID_H': 1,
+ 'HAVE_UUID_UUID_H': 0,
  'HAVE_WAIT3': 1,
  'HAVE_WAIT4': 1,
  'HAVE_WAITID': 1,
@@ -549,13 +549,13 @@ build_time_vars = {'ABIFLAGS': '',
  'INSTSONAME': 'libpython3.8.so.1.0',
  'IO_H': 'Modules/_io/_iomodule.h',
  'IO_OBJS': '\\',
- 'LDCXXSHARED': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-g++ '
+ 'LDCXXSHARED': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-g++ '
                 '-shared',
  'LDFLAGS': '',
  'LDFLAGS_NODIST': '',
  'LDLIBRARY': 'libpython3.8.so',
  'LDLIBRARYDIR': '',
- 'LDSHARED': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc '
+ 'LDSHARED': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc '
              '-shared',
  'LDVERSION': '3.8',
  'LIBC': '',
@@ -573,7 +573,7 @@ build_time_vars = {'ABIFLAGS': '',
  'LIBRARY_OBJS_OMIT_FROZEN': '\\',
  'LIBS': '-lcrypt -lpthread -ldl  -lpthread -lutil -lm',
  'LIBSUBDIRS': 'site-packages \\',
- 'LINKCC': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
+ 'LINKCC': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
  'LINKFORSHARED': '-Xlinker -export-dynamic',
  'LIPO_32BIT_FLAGS': '',
  'LLVM_PROF_ERR': 'no',
@@ -585,9 +585,9 @@ build_time_vars = {'ABIFLAGS': '',
  'MACHDEP_OBJS': '',
  'MACHDESTLIB': '/usr/lib/python3.8',
  'MACOSX_DEPLOYMENT_TARGET': '',
- 'MAINCC': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
+ 'MAINCC': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-gcc',
  'MAJOR_IN_MKDEV': 0,
- 'MAJOR_IN_SYSMACROS': 0,
+ 'MAJOR_IN_SYSMACROS': 1,
  'MAKESETUP': './Modules/makesetup',
  'MANDIR': '/usr/share/man',
  'MKDIR_P': '/bin/mkdir -p',
@@ -616,7 +616,7 @@ build_time_vars = {'ABIFLAGS': '',
  'NO_AS_NEEDED': '-Wl,--no-as-needed',
  'OBJECT_OBJS': '\\',
  'OPENSSL_INCLUDES': '',
- 'OPENSSL_LDFLAGS': '-L/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/../mipsel-buildroot-linux-gnu/sysroot/usr/lib',
+ 'OPENSSL_LDFLAGS': '-L/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/../mipsel-buildroot-linux-gnu/sysroot/usr/lib',
  'OPENSSL_LIBS': '-lssl -lcrypto',
  'OPT': '-DNDEBUG -g -fwrapv -O3 -Wall',
  'OTHER_LIBTOOL_OPT': '',
@@ -644,10 +644,10 @@ build_time_vars = {'ABIFLAGS': '',
  'PYTHONFRAMEWORKINSTALLDIR': '',
  'PYTHONFRAMEWORKPREFIX': '',
  'PYTHONPATH': '',
- 'PYTHON_FOR_BUILD': '_PYTHON_PROJECT_BASE=/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2 '
+ 'PYTHON_FOR_BUILD': '_PYTHON_PROJECT_BASE=/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2 '
                      '_PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) '
                      'PYTHONPATH=$(shell test -f pybuilddir.txt && echo '
-                     '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/`cat '
+                     '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2/`cat '
                      'pybuilddir.txt`:)./Lib '
                      '_PYTHON_SYSCONFIGDATA_NAME=_sysconfigdata__linux_mipsel-linux-gnu '
                      'python3.8',
@@ -656,18 +656,18 @@ build_time_vars = {'ABIFLAGS': '',
  'PYTHON_OBJS': '\\',
  'PY_BUILTIN_MODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g '
                              '-fwrapv -O3 -Wall -D_LARGEFILE_SOURCE '
-                             '-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64  '
-                             '-Os -std=c99 -Wextra -Wno-unused-result '
-                             '-Wno-unused-parameter '
+                             '-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 '
+                             '-D__USE_TIME_BITS64  -Os -std=c99 -Wextra '
+                             '-Wno-unused-result -Wno-unused-parameter '
                              '-Wno-missing-field-initializers '
                              '-Werror=implicit-function-declaration  '
                              '-I./Include/internal -I. -I./Include '
                              '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                             '-D_FILE_OFFSET_BITS=64 -fPIC '
+                             '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64 -fPIC '
                              '-DPy_BUILD_CORE_BUILTIN',
  'PY_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall '
               '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-              '-D_FILE_OFFSET_BITS=64  -Os',
+              '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64  -Os',
  'PY_CFLAGS_NODIST': '-std=c99 -Wextra -Wno-unused-result '
                      '-Wno-unused-parameter -Wno-missing-field-initializers '
                      '-Werror=implicit-function-declaration  '
@@ -675,16 +675,16 @@ build_time_vars = {'ABIFLAGS': '',
  'PY_COERCE_C_LOCALE': 1,
  'PY_CORE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 '
                    '-Wall -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                   '-D_FILE_OFFSET_BITS=64  -Os -std=c99 -Wextra '
-                   '-Wno-unused-result -Wno-unused-parameter '
+                   '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64  -Os -std=c99 '
+                   '-Wextra -Wno-unused-result -Wno-unused-parameter '
                    '-Wno-missing-field-initializers '
                    '-Werror=implicit-function-declaration  '
                    '-I./Include/internal -I. -I./Include -D_LARGEFILE_SOURCE '
-                   '-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -fPIC '
-                   '-DPy_BUILD_CORE',
+                   '-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 '
+                   '-D__USE_TIME_BITS64 -fPIC -DPy_BUILD_CORE',
  'PY_CORE_LDFLAGS': '',
  'PY_CPPFLAGS': '-I. -I./Include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                '-D_FILE_OFFSET_BITS=64',
+                '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64',
  'PY_FORMAT_SIZE_T': '"z"',
  'PY_LDFLAGS': '',
  'PY_LDFLAGS_NODIST': '',
@@ -692,19 +692,19 @@ build_time_vars = {'ABIFLAGS': '',
  'PY_SSL_DEFAULT_CIPHER_STRING': 0,
  'PY_STDMODULE_CFLAGS': '-Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv '
                         '-O3 -Wall -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                        '-D_FILE_OFFSET_BITS=64  -Os -std=c99 -Wextra '
-                        '-Wno-unused-result -Wno-unused-parameter '
-                        '-Wno-missing-field-initializers '
+                        '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64  -Os '
+                        '-std=c99 -Wextra -Wno-unused-result '
+                        '-Wno-unused-parameter -Wno-missing-field-initializers '
                         '-Werror=implicit-function-declaration  '
                         '-I./Include/internal -I. -I./Include '
                         '-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE '
-                        '-D_FILE_OFFSET_BITS=64 -fPIC',
+                        '-D_FILE_OFFSET_BITS=64 -D__USE_TIME_BITS64 -fPIC',
  'Py_DEBUG': 0,
  'Py_ENABLE_SHARED': 1,
  'Py_HASH_ALGORITHM': 0,
  'Py_TRACE_REFS': 0,
  'QUICKTESTOPTS': '-x test_subprocess test_io test_lib2to3 \\',
- 'READELF': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-readelf',
+ 'READELF': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/host/bin/mips-linux-gnu-readelf',
  'RESSRCDIR': 'Mac/Resources/framework',
  'RETSIGTYPE': 'void',
  'RUNSHARED': '',
@@ -772,8 +772,8 @@ build_time_vars = {'ABIFLAGS': '',
  'WITH_VALGRIND': 0,
  'X87_DOUBLE_ROUNDING': 0,
  'XMLLIBSUBDIRS': 'xml xml/dom xml/etree xml/parsers xml/sax',
- 'abs_builddir': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2',
- 'abs_srcdir': '/opt/wuhui/code/creality/Release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2',
+ 'abs_builddir': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2',
+ 'abs_srcdir': '/opt/wuhui/code/creality/Pre-release/ingenic_linux_CR4CU220812S11/buildroot/buildroot/output/build/python3-3.8.2',
  'datarootdir': '/usr/share',
  'exec_prefix': '/usr',
  'prefix': '/usr',

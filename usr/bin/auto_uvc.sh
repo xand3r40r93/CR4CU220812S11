@@ -2,8 +2,12 @@
 
 #set -x
 
+. /usr/share/libubox/jshn.sh
+
 PROG=/usr/bin/cam_app
 MJPG_STREAMER=/usr/bin/mjpg_streamer
+VERSION_FILE=/tmp/.cam_version
+FW_ROOT_DIR=/usr/share/uvc/fw
 
 MAIN_CAM=0
 MAIN_PORT=8080
@@ -22,6 +26,49 @@ echo_console()
     printf "$*" > /dev/console
 }
 
+fw_info()
+{
+    [ -x /usr/bin/cam_util ] && {
+        FwVersion=$(cam_util -i $1 -g | grep -w FwVersion | awk -F ' ' -e '{print $2}')
+        if [ "x$FwVersion" != "x" ]; then
+            manufactory=${FwVersion:15:9}
+            cur_version=${FwVersion:25:6}
+
+            case $manufactory in
+                "STsmart_-" | "STJC-000I")
+                    if [ $(ls ${FW_ROOT_DIR}/STsmart/*.src | wc -l) -eq 1 ]; then
+                        fw_path=$(ls ${FW_ROOT_DIR}/STsmart/*.src)
+                        tmp=$(basename $fw_path)
+                        tmp=${tmp%.src}
+                        fw_version=${tmp##*_}
+                    else
+                        fw_version=0
+                        fw_path=
+                        echo_console "we should keep only one firmware file for STsmart!"
+                    fi
+                    ;;
+                *)
+                    ;;
+            esac
+
+            json_init
+            json_add_object "main_cam"
+            json_add_string "video_node" $1
+            json_add_string "manufactory" $manufactory
+            json_add_string "cur_version" $cur_version
+            json_add_string "newest_fw_path" $fw_path
+            if [ $fw_version -gt $cur_version ]; then
+                json_add_boolean "can_update" 1
+            else
+                json_add_boolean "can_update" 0
+            fi
+            json_close_object
+            json_dump > $VERSION_FILE
+            json_cleanup
+        fi
+    }
+}
+
 start_uvc()
 {
     case $1 in
@@ -33,9 +80,12 @@ start_uvc()
                 return
             }
 
+            fw_info /dev/v4l/by-id/$1
+
             start-stop-daemon -S -b -m -p /var/run/$1.pid \
                 --exec $PROG -- -i /dev/v4l/by-id/$1 -t $MAIN_CAM \
-                -w $MAIN_PIC_WIDTH -h $MAIN_PIC_HEIGHT -f $MAIN_PIC_FPS
+                -w $MAIN_PIC_WIDTH -h $MAIN_PIC_HEIGHT -f $MAIN_PIC_FPS \
+                -c
             [ $? = 0 ] && echo_console "OK\n" || echo_console "FAIL\n"
 
             sleep 1
@@ -132,10 +182,22 @@ sync && echo 3 > /proc/sys/vm/drop_caches
 
 case "${ACTION}" in
 add)
+        MODEL=$(get_sn_mac.sh model)
+        if [ "x${MODEL}" = "xF003" ]; then
+            MAIN_PIC_WIDTH=1920
+            MAIN_PIC_HEIGHT=1080
+            SUB_PIC_WIDTH=1920
+            SUB_PIC_HEIGHT=1080
+            echo_console "MODEL = ${MODEL}"
+            [ "x$(ps | grep '/usr/bin/cam_app' | grep -v grep)" != "x" ] && echo_console "already have a camera" && exit 1
+        fi
+
         start_uvc ${MDEV}
         ;;
 remove)
         stop_uvc ${MDEV}
+
+        rm -rf $VERSION_FILE
         ;;
 # cmd: ACTION=reload /usr/bin/auto_uvc.sh
 reload)

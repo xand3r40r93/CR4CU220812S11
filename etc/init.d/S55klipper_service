@@ -19,8 +19,8 @@ mcu_reset()
 
 rm_pyc()
 {
-    find /usr/share/klipper/ -iname "*.pyc" | xargs rm -rf && sync
-    find /usr/lib/python3.8/ -iname "*.pyc" | xargs rm -rf && sync
+    find /usr/share/klipper/ -iname "*.pyc" | xargs rm -rf
+    sync
 }
 
 get_cfg_version()
@@ -41,6 +41,28 @@ get_cfg_version()
     fi
 }    
 
+# Max backup cfg file count: 5
+# file name like : printer.cfg.1, printer.cfg.2
+backup_usr_cfg()
+{
+    local usr_cfg=$1
+
+    if [ -f $usr_cfg ]; then
+        count=$(ls $usr_cfg* | wc -l)
+        i=$count
+        while [ $i -ge 1 ]; do
+            if [ $i -ge 6 ]; then
+                echo "do nothing"
+            elif [ $i -eq 1 ]; then
+                cp $usr_cfg $usr_cfg.1 && sync
+            else
+                cp $usr_cfg.$((i-1)) $usr_cfg.$i && sync
+            fi
+            let i-=1
+        done
+    fi
+}
+
 update_config()
 {
     local old_cfg="$2"
@@ -53,6 +75,8 @@ update_config()
     echo "new_version: $new_version"
 
     if [ $new_version -gt $old_version ]; then
+        echo "backup user config"
+        backup_usr_cfg "$old_cfg"
         echo "update config"
         cp "$new_cfg" "$tmp_cfg"
         echo "" >> "$tmp_cfg"
@@ -99,7 +123,13 @@ copy_config()
             ;;
 
         "Nebula Pad")
-            config_dir=Nebula/Ender3S1
+            # config_dir=Nebula/Ender3S1
+            config_dir=Nebula/Ender-3\ pro
+            gcode_dir=
+            ;;
+
+        "F003")
+            config_dir=Nebula/F003
             gcode_dir=
             ;;
 
@@ -114,9 +144,11 @@ copy_config()
         if [ -s $PRINTER_CONFIG_DIR/printer_params.cfg ]; then
             echo "no need to update custom config files"
         else
-            [ "x${config_dir}" != "x" -a -d /usr/share/klipper/config/${config_dir} ] && {
+            [ "x${config_dir}" != "x" -a -d "/usr/share/klipper/config/${config_dir}" ] && {
                 # keep printer.cfg
-                cp -af `ls /usr/share/klipper/config/${config_dir}/*.cfg | grep -v printer.cfg | xargs` $PRINTER_CONFIG_DIR/
+                CONFIG_PATH=/usr/share/klipper/config/${config_dir}
+                # cp -af `ls /usr/share/klipper/config/${config_dir}/*.cfg | grep -v printer.cfg | xargs` $PRINTER_CONFIG_DIR/
+                ls "${CONFIG_PATH}"/*.cfg | grep -v printer.cfg | xargs -I {} cp -af {} $PRINTER_CONFIG_DIR/
                 sync
             }
         fi
@@ -124,8 +156,9 @@ copy_config()
         # update printer.cfg and keep SAVE_CONFIG section
         update_config "/usr/share/klipper/config/${config_dir}/printer.cfg" $PRINTER_CONFIG_DIR/printer.cfg
     else
-        [ "x${config_dir}" != "x" -a -d /usr/share/klipper/config/${config_dir} ] && {
-            cp -af /usr/share/klipper/config/${config_dir}/*.cfg $PRINTER_CONFIG_DIR/
+        CONFIG_PATH=/usr/share/klipper/config/${config_dir}
+        [ "x${config_dir}" != "x" -a -d "${CONFIG_PATH}" ] && {
+            cp -af "${CONFIG_PATH}"/*.cfg $PRINTER_CONFIG_DIR/
             sync
         }
 

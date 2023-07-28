@@ -17,12 +17,6 @@ mcu_reset()
     [ -z $(pidof klipper_mcu) ] || /etc/init.d/S57klipper_mcu restart
 }
 
-rm_pyc()
-{
-    find /usr/share/klipper/ -iname "*.pyc" | xargs rm -rf && sync
-    find /usr/lib/python3.8/ -iname "*.pyc" | xargs rm -rf && sync
-}
-
 get_cfg_version()
 {
     local cfg="$1"
@@ -178,7 +172,6 @@ start() {
         [ -d $PRINTER_LOGS_DIR ] || mkdir -p $PRINTER_LOGS_DIR
         [ -d $GCODE_FILES_DIR ] || mkdir -p $GCODE_FILES_DIR
 
-        rm_pyc
         copy_config
 
         HOME=/root start-stop-daemon -S -q -b -m -p $PID_FILE \

@@ -79,6 +79,7 @@ class CUSTOM_MACRO:
             self.gcode.run_script_from_command('G1 X0.1 Y180.0 Z0.3 F3000.0 E10.0')
             self.gcode.run_script_from_command('G1 X0.4 Y180.0 Z0.3 F3000.0')
             self.gcode.run_script_from_command('G1 X0.4 Y20.0 Z0.3 F3000.0 E10.0')
+            self.gcode.run_script_from_command('G1 Y10.0 F3000.0')
             self.gcode.run_script_from_command('G1 Z2.0 F600.0')
             self.gcode.run_script_from_command('G1 Z0.3 F600.0')
             self.gcode.run_script_from_command('G1 Z2.0 F600.0')

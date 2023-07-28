@@ -30,16 +30,10 @@ jpeg_display()
 
         "Nebula Pad")
             logofile=${theme}_portrait_rot270_${width}x${height}.jpg
-            path=/etc/boot-display-nebula/part
-            width=480
-            height=272
             ;;
 
         "F003")
             logofile=${theme}_portrait_rot270_${width}x${height}.jpg
-            path=/etc/boot-display-nebula/part
-            width=480
-            height=272
             ;;
 
         *)
@@ -49,11 +43,7 @@ jpeg_display()
     esac
 
     cmd_jpeg_display /etc/logo/$logofile
-    if [ "x$model" = "xF003" -o "x$model" = "xNebula Pad" ]; then
-        [ ! -d /usr/data/creality/boot_display ] && mkdir -p /usr/data/creality/boot_display
-        [ ! -s /usr/data/creality/boot_display/boot_display0.yuv ] || [ ! -s /usr/data/creality/boot_display/boot_display1.yuv ] && boot_display boot path=$path width=$width height=$height
-        boot_display display width=$width height=$height num1=$(ls /etc/boot-display-nebula/part0 | wc -l) num2=$(ls /etc/boot-display-nebula/part1 | wc -l) &
-    fi
+
 }
 
 case "$1" in

@@ -600,7 +600,7 @@ class VirtualSD:
                             self.gcode.run_script("EEPROM_WRITE_BYTE ADDR=0 VAL=%d" % pos)
                         # logging.info("eepromWriteCount:%d, pos:%d" % (self.eepromWriteCount, pos))
                     self.eepromWriteCount += 1
-                if power_loss_switch and bl24c16f and (self.layer == 3 or self.count_G1 == 19):
+                if power_loss_switch and bl24c16f and self.count_G1 == 19:
                     gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
                 if power_loss_switch and bl24c16f and (self.layer > 2 or gcode_move.last_position[2] > 3) and self.count_line % 999 == 0:
                     gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
@@ -630,7 +630,7 @@ class VirtualSD:
                         if line.startswith(layer_key):
                             logging.info("print_first_layer layer_key:%s" % layer_key)
                             X, Y, Z, E = toolhead.get_position()
-                            self.gcode.run_script("PAUSE")
+                            self.gcode.run_script("FIRST_FLOOR_PAUSE")
                             self.first_layer_stop = True
                 if delay_photography_switch:
                     for layer_key in LAYER_KEYS:

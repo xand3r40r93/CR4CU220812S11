@@ -19,7 +19,14 @@
         { "fault_code":3002, "error":2 },
 
         { "fault_code":2506, "error":3 },
+        { "fault_code":2560, "error":3 },
+        { "fault_code":2561, "error":3 },
+        { "fault_code":2562, "error":3 },
+        { "fault_code":2563, "error":3 },
         { "fault_code":2507, "error":4 },
+        { "fault_code":2564, "error":4 },
+        { "fault_code":2565, "error":4 },
+
         { "fault_code":2243, "error":7 },
         { "fault_code":2056, "error":9 },
         { "fault_code":2119, "error":9 },

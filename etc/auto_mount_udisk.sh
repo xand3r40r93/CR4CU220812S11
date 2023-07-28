@@ -20,7 +20,7 @@ mount_ntfs()
 my_umount()
 {
         if grep -qs "^/dev/$1 " /proc/mounts ; then
-                umount "${destdir}/$1";
+                umount -l "${destdir}/$1";
                 ubus_call udisk set_state 0 "${destdir}/$1";
         fi
 

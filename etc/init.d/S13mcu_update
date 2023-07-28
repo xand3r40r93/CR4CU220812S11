@@ -53,10 +53,25 @@ get_version()
     fi
 }
 
+is_invalid_fw_version()
+{
+    local version=$1
+    local fw_version=
+
+    fw_version=$(echo $version | awk 'BEGIN{FS="-"} {print $2} END{}')
+
+    if [ "${fw_version:4:1}" != "_" -o "${fw_version:8:1}" != "_" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
 compare_version()
 {
     local version=$1
     local fw_dir=$2
+    local force_update=$3
     local ret_fw_bin=
     local fw_bin=
     local hw_version=
@@ -70,8 +85,8 @@ compare_version()
     hw_version=$(echo $version | awk 'BEGIN{FS="-"} {print $1} END{}')
     fw_version=$(echo $version | awk 'BEGIN{FS="-"} {print $2} END{}')
 
-    if [ "${fw_version:4:1}" != "_" -o "${fw_version:8:1}" != "_" ]; then
-        invalid_fw_version=true
+    invalid_fw_version=$(is_invalid_fw_version $version)
+    if [ "$invalid_fw_version" = "true" ]; then
         write_log "get invalid fw version"
     fi
 
@@ -81,7 +96,7 @@ compare_version()
         tmp=${fw_bin%.*}
         orig_fw_version=${version:18:3}
         target_fw_version=${tmp:18:3}
-        if [ "$invalid_fw_version" = "true" -o $target_fw_version -ne $orig_fw_version ]; then
+        if [ "$invalid_fw_version" = "true" -o $force_update = "true" -o $target_fw_version -ne $orig_fw_version ]; then
             ret_fw_bin=$fw_dir/$fw_bin
             write_log "old version: $version, will update: $ret_fw_bin"
         fi
@@ -137,9 +152,13 @@ auto_update()
     local bed0_serial=
     local noz0_serial=
 
-    local mcu0_ready=false
-    local bed0_ready=false
-    local noz0_ready=false
+    local mcu0_ready=
+    local bed0_ready=
+    local noz0_ready=
+
+    local mcu0_force_update=false
+    local bed0_force_update=false
+    local noz0_force_update=false
 
     local mcu0_version=unknown
     local bed0_version=unknown
@@ -174,22 +193,46 @@ auto_update()
     fi
     echo "fw_dir: $fw_dir"
 
-    ret=$(mcu_handshake $mcu0_serial)
-    if [ $ret -eq $RET_SUCCESS ]; then
-        mcu0_ready=true
-        write_log "mcu0 ready"
+    if [ "x$mcu0_serial" != "x" -a -e $mcu0_serial ]; then
+        ret=$(mcu_handshake $mcu0_serial)
+        if [ $ret -eq $RET_SUCCESS ]; then
+            mcu0_ready=true
+            write_log "mcu0 ready"
+        else
+            mcu0_ready=false
+        fi
+        
+        if [ "x$FORCE" = "xmcu0" ]; then
+            mcu0_force_update=true
+        fi
     fi
 
-    ret=$(mcu_handshake $bed0_serial)
-    if [ $ret -eq $RET_SUCCESS ]; then
-        bed0_ready=true
-        write_log "bed0 ready"
+    if [ "x$bed0_serial" != "x" -a -e $bed0_serial ]; then
+        ret=$(mcu_handshake $bed0_serial)
+        if [ $ret -eq $RET_SUCCESS ]; then
+            bed0_ready=true
+            write_log "bed0 ready"
+        else
+            bed0_ready=false
+        fi
+
+        if [ "x$FORCE" = "xbed0" ]; then
+            bed0_force_update=true
+        fi
     fi
 
-    ret=$(mcu_handshake $noz0_serial)
-    if [ $ret -eq $RET_SUCCESS ]; then
-        noz0_ready=true
-        write_log "noz0 ready"
+    if [ "x$noz0_serial" != "x" -a -e $noz0_serial ]; then
+        ret=$(mcu_handshake $noz0_serial)
+        if [ $ret -eq $RET_SUCCESS ]; then
+            noz0_ready=true
+            write_log "noz0 ready"
+        else
+            noz0_ready=false
+        fi
+
+        if [ "x$FORCE" = "xnoz0" ]; then
+            noz0_force_update=true
+        fi
     fi
 
     json_init
@@ -199,21 +242,28 @@ auto_update()
         if [ $version != "unknown" ]; then
             mcu0_version=$version
             write_log "mcu0_version: $mcu0_version"
-            fw_bin=$(compare_version $mcu0_version $FW_ROOT_DIR/$fw_dir)
+            fw_bin=$(compare_version $mcu0_version $FW_ROOT_DIR/$fw_dir $mcu0_force_update)
             if [ "x$fw_bin" != "x" ]; then
                 ret=$(fw_update $mcu0_serial $fw_bin)
                 if [ $ret -eq $RET_SUCCESS ]; then
                     tmp=$(basename $fw_bin)
                     mcu0_version=${tmp%.bin}
+                else
+                    mcu0_version=
                 fi
             else
                 ret=$(startup_app $mcu0_serial)
             fi
-            json_add_object "mcu0"
-            json_add_string "serial" $mcu0_serial
-            json_add_string "version" $mcu0_version
-            json_close_object
         fi
+    elif [ $mcu0_ready = "false" ]; then
+        mcu0_version=
+    fi
+
+    if [ "x$mcu0_ready" != "x" ]; then
+        json_add_object "mcu0"
+        json_add_string "serial" $mcu0_serial
+        json_add_string "version" $mcu0_version
+        json_close_object
     fi
 
     if [ $bed0_ready = "true" ]; then
@@ -221,21 +271,28 @@ auto_update()
         if [ $version != "unknown" ]; then
             bed0_version=$version
             write_log "bed0_version: $bed0_version"
-            fw_bin=$(compare_version $bed0_version $FW_ROOT_DIR/$fw_dir)
+            fw_bin=$(compare_version $bed0_version $FW_ROOT_DIR/$fw_dir $bed0_force_update)
             if [ "x$fw_bin" != "x" ]; then
                 ret=$(fw_update $bed0_serial $fw_bin)
                 if [ $ret -eq $RET_SUCCESS ]; then
                     tmp=$(basename $fw_bin)
                     bed0_version=${tmp%.bin}
+                else
+                    bed0_version=
                 fi
             else
                 ret=$(startup_app $bed0_serial)
             fi
-            json_add_object "bed0"
-            json_add_string "serial" $bed0_serial
-            json_add_string "version" $bed0_version
-            json_close_object
         fi
+    elif [ $bed0_ready = "false" ]; then
+        bed0_version=
+    fi
+
+    if [ "x$bed0_ready" != "x" ]; then
+        json_add_object "bed0"
+        json_add_string "serial" $bed0_serial
+        json_add_string "version" $bed0_version
+        json_close_object
     fi
 
     if [ $noz0_ready = "true" ]; then
@@ -243,21 +300,28 @@ auto_update()
         if [ $version != "unknown" ]; then
             noz0_version=$version
             write_log "noz0_version: $noz0_version"
-            fw_bin=$(compare_version $noz0_version $FW_ROOT_DIR/$fw_dir)
+            fw_bin=$(compare_version $noz0_version $FW_ROOT_DIR/$fw_dir $noz0_force_update)
             if [ "x$fw_bin" != "x" ]; then
                 ret=$(fw_update $noz0_serial $fw_bin)
                 if [ $ret -eq $RET_SUCCESS ]; then
                     tmp=$(basename $fw_bin)
-                    bed0_version=${tmp%.bin}
+                    noz0_version=${tmp%.bin}
+                else
+                    noz0_version=
                 fi
             else
                 ret=$(startup_app $noz0_serial)
             fi
-            json_add_object "noz0"
-            json_add_string "serial" $noz0_serial
-            json_add_string "version" $noz0_version
-            json_close_object
         fi
+    elif [ $noz0_ready = "false" ]; then
+        noz0_version=
+    fi
+
+    if [ "x$noz0_ready" != "x" ]; then
+        json_add_object "noz0"
+        json_add_string "serial" $noz0_serial
+        json_add_string "version" $noz0_version
+        json_close_object
     fi
 
     json_dump > $VERSION_FILE

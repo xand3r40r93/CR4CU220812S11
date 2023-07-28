@@ -968,6 +968,8 @@
 ;Machine Height:300
 ;Machine Width:300
 ;Machine Depth:300
+; filament_type = PLA
+;Material Type:PLA
 ;Material name:PLA
 ;Number of Extruders:1
 ;ExtruderParams[0] Nozzle Diameter:1000
@@ -975,7 +977,7 @@
 ;Layer Height:0.25
 ;Wall Thickness:1.32
 ;Top/Bottom Thickness:0.8
-;Out Wall Line Width:0.4
+;Out Wall Line Width:0.42
 ;Inner Wall Line Width:0.4
 ;Inital Layer Height:200
 ;Wall Line Count:2
@@ -995,6 +997,7 @@
 ;Raft Base Line Spacing:1.6
 ;Wait Heatup Sync:true
 ;Enable Ironing:false
+;Max volumetric speed:23
 ;----------Shell Config----------------
 ;Outer Wall Wipe Distance:200
 ;Outer Inset First:false
@@ -1038,7 +1041,9 @@
 ;Retract Before Outer Wall:false
 ;Print Speed:300
 ;Infill Speed:300
-
+;Outer Wall Speed:200
+;Outer Wall Acceleration:5000
+;Acceleration to decelerate:50
 ;Prime Tower Speed:150
 ;Travel Speed:500
 ;Initial Layer Speed:100
@@ -1068,7 +1073,6 @@ G90
 G21
 M83 ; use relative distances for extrusion
 ; filament start gcode
-SET_PRESSURE_ADVANCE ADVANCE=0.05; Override pressure advance value
 M106 S0
 M106 P2 S0
 ;LAYER_CHANGE

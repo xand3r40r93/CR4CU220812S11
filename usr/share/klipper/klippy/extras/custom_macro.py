@@ -48,7 +48,7 @@ class CUSTOM_MACRO:
 
     cmd_CX_PRINT_DRAW_ONE_LINE_help = "Draw one line before printing"
     def cmd_CX_PRINT_DRAW_ONE_LINE(self, gcmd):
-        self.gcode.run_script_from_command('G92 E0')
+        self.gcode.run_script_from_command('M83')
         self.gcode.run_script_from_command('G1 X10 Y10 Z2 F6000')
         self.gcode.run_script_from_command('G1 Z0.1 F600')
         self.pheaters = self.printer.lookup_object('heaters')
@@ -65,25 +65,25 @@ class CUSTOM_MACRO:
             self.pheaters.can_break_flag = 0
             self.gcode.respond_info("can_break_flag is 3")
             self.gcode.run_script_from_command('G21')
-            self.gcode.run_script_from_command('G92 E0')
             self.gcode.run_script_from_command('G1 F2400 E-0.5')
             self.gcode.run_script_from_command('SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=5')
             self.gcode.run_script_from_command('M204 S12000')
             self.gcode.run_script_from_command('G21')
             self.gcode.run_script_from_command('SET_VELOCITY_LIMIT ACCEL_TO_DECEL=6000')
             # self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE ADVANCE=0.04')
-            self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE SMOOTH_TIME=0.04')
+            # self.gcode.run_script_from_command('SET_PRESSURE_ADVANCE SMOOTH_TIME=0.04')
             self.gcode.run_script_from_command('M220 S100')
             self.gcode.run_script_from_command('M221 S100')
             self.gcode.run_script_from_command('G1 Z2.0 F1200')
             self.gcode.run_script_from_command('G1 X0.1 Y20 Z0.3 F6000.0')
             self.gcode.run_script_from_command('G1 X0.1 Y180.0 Z0.3 F3000.0 E10.0')
             self.gcode.run_script_from_command('G1 X0.4 Y180.0 Z0.3 F3000.0')
-            self.gcode.run_script_from_command('G1 X0.4 Y20.0 Z0.3 F3000.0 E20.0')
+            self.gcode.run_script_from_command('G1 X0.4 Y20.0 Z0.3 F3000.0 E10.0')
             self.gcode.run_script_from_command('G1 Z2.0 F600.0')
             self.gcode.run_script_from_command('G1 Z0.3 F600.0')
             self.gcode.run_script_from_command('G1 Z2.0 F600.0')
             # self.gcode.run_script_from_command('G1 X0.4 Y10.0 Z0.3 F6000.0')
+            self.gcode.run_script_from_command('M82')
             self.gcode.run_script_from_command('G92 E0')
             # self.gcode.run_script_from_command('G1 Z2.0 F600')
             self.gcode.run_script_from_command('G1 F12000')
@@ -94,8 +94,8 @@ class CUSTOM_MACRO:
     def cmd_CX_ROUGH_G28(self, gcmd):
         self.extruder_temp = gcmd.get_float('EXTRUDER_TEMP', default=self.default_extruder_temp, minval=180.0, maxval=320.0)
         self.g28_ext_temp = self.extruder_temp - 70
-        if self.g28_ext_temp > 200.0:
-            self.g28_ext_temp = 200.0
+        if self.g28_ext_temp > 180.0:
+            self.g28_ext_temp = 180.0
         try:
             self.prtouch = self.printer.lookup_object('prtouch_v2')
         except:

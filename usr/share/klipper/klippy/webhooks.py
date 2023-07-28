@@ -229,11 +229,15 @@ class ClientConnection:
         except socket.error as e:
             # If bad file descriptor allow connection to be
             # closed by the data check
+            logging.error("process_received 1 e:%s" % str(e))
             if e.errno == errno.EBADF:
+                logging.error("process_received 2 e:%s" % str(e))
                 data = b""
             else:
+                logging.error("process_received 3 e.errno != errno.EBADF")
                 return
         if not data:
+            logging.error("process_received 4 not data Socket Closed")
             # Socket Closed
             self.close()
             return
@@ -510,8 +514,9 @@ class QueryStatusHelper:
             self.query_timer = None
             return reactor.NEVER
         return eventtime + SUBSCRIPTION_REFRESH_TIME
-    def _handle_query(self, web_request, is_subscribe=False):
+    def _handle_query(self, web_request, is_subscribe=False, handle_subscribe=False):
         objects = web_request.get_dict('objects')
+        logging.info("_handle_query objects/subscribe:%s" % str(objects)) if handle_subscribe else None
         # Validate subscription format
         for k, v in objects.items():
             if type(k) != str or (v is not None and type(v) != list):
@@ -533,12 +538,14 @@ class QueryStatusHelper:
             qt = reactor.register_timer(self._do_query, reactor.NOW)
             self.query_timer = qt
         # Wait for data to be queried
+        logging.info("_handle_query before complete.wait") if handle_subscribe else None
         msg = complete.wait()
+        logging.info("_handle_query after complete.wait:%s" % str(msg['params'])) if handle_subscribe else None
         web_request.send(msg['params'])
         if is_subscribe:
             self.clients[cconn] = (cconn, objects, cconn.send, template)
     def _handle_subscribe(self, web_request):
-        self._handle_query(web_request, is_subscribe=True)
+        self._handle_query(web_request, is_subscribe=True, handle_subscribe=True)
 
 def add_early_printer_objects(printer):
     printer.add_object('webhooks', WebHooks(printer))

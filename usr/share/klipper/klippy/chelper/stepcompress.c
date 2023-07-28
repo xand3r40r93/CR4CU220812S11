@@ -254,7 +254,7 @@ check_line(struct stepcompress *sc, struct step_move move)
             errorf("stepcompress o=%d i=%d c=%d a=%d: Point %d: %d not in %d:%d"
                    , sc->oid, move.interval, move.count, move.add
                    , i+1, p, point.minp, point.maxp);
-            return ERROR_RET;
+            // return ERROR_RET;
         }
         if (interval >= 0x80000000) {
             errorf("stepcompress o=%d i=%d c=%d a=%d:"

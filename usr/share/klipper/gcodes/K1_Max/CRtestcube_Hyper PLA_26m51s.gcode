@@ -624,7 +624,9 @@
 ;Machine Height:300
 ;Machine Width:300
 ;Machine Depth:300
-;Material name:Castable
+; filament_type = PLA
+;Material Type:PLA
+;Material name:PLA
 ;Number of Extruders:1
 ;ExtruderParams[0] Nozzle Diameter:1000
 ;----------Profile Config---------------
@@ -651,6 +653,10 @@
 ;Raft Base Line Spacing:1.6
 ;Wait Heatup Sync:true
 ;Enable Ironing:false
+;Max volumetric speed:23
+;Outer Wall Speed:200
+;Outer Wall Acceleration:5000
+;Acceleration to decelerate:50
 ;----------Shell Config----------------
 ;Outer Wall Wipe Distance:200
 ;Outer Inset First:false

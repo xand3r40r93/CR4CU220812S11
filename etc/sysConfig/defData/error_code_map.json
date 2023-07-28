@@ -1,0 +1,40 @@
+{
+    "code_to_error":
+    [
+        { "fault_code":2505, "error":1 },
+
+        { "fault_code":2060, "error":2 },
+        { "fault_code":2090, "error":2 },
+        { "fault_code":2091, "error":2 },
+        { "fault_code":2092, "error":2 },
+        { "fault_code":2093, "error":2 },
+        { "fault_code":2094, "error":2 },
+        { "fault_code":2295, "error":2 },
+        { "fault_code":2298, "error":2 },
+        { "fault_code":2299, "error":2 },
+        { "fault_code":2300, "error":2 },
+        { "fault_code":2301, "error":2 },
+
+        { "fault_code":2506, "error":3 },
+        { "fault_code":2507, "error":4 },
+        { "fault_code":2243, "error":7 },
+        { "fault_code":101,  "error":8 },
+        { "fault_code":103,  "error":8 },
+        { "fault_code":2000, "error":200 },
+        { "fault_code":2001, "error":200 },
+
+        { "fault_code":2243, "error":202 },
+        { "fault_code":501,  "error":204 },
+        { "fault_code":502,  "error":204 },
+        { "fault_code":500,  "error":206 },
+        { "fault_code":503,  "error":206 },
+        { "fault_code":100,  "error":208 },
+        { "fault_code":102,  "error":208 },
+
+        { "fault_code":2095, "error":800 },
+        { "fault_code":2242, "error":800 },
+
+        { "fault_code":2003, "error":801 }
+    ],
+    "unknown_error":500
+}

@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d0db81a"],{"6fc7":function(e,t){let c=["3796490_9tsue3yta1"],n="https://at.alicdn.com/t/c/font_$key.css";const s=e=>{const t=document.createElement("link");t.type="text/css",t.rel="stylesheet",t.href=e;const c=document.getElementsByTagName("head")[0];c.appendChild(t)};c.forEach(e=>{s(n.replace("$key",e))})}}]);
+//# sourceMappingURL=chunk-2d0db81a.4667331c.js.map

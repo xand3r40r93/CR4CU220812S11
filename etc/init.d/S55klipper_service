@@ -19,8 +19,8 @@ mcu_reset()
 
 rm_pyc()
 {
-    find /usr/share/klipper/ -iname "*.pyc" | xargs rm -rf
-    sync
+    find /usr/share/klipper/ -iname "*.pyc" | xargs rm -rf && sync
+    find /usr/lib/python3.8/ -iname "*.pyc" | xargs rm -rf && sync
 }
 
 get_cfg_version()

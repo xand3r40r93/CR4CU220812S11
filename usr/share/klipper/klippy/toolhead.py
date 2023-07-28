@@ -609,7 +609,8 @@ class ToolHead:
         self._calc_junction_deviation()
         v_sd = self.printer.lookup_object('virtual_sdcard', None)
         print_stats = self.printer.lookup_object('print_stats', None)
-        if print_stats and print_stats.state == "printing" and v_sd and os.path.exists(v_sd.print_file_name_path):
+        if print_stats and print_stats.state == "printing" and v_sd and v_sd.count_M204 < 3 and os.path.exists(v_sd.print_file_name_path):
+            v_sd.count_M204 += 1
             with open(v_sd.print_file_name_path, "r") as f:
                 result = (json.loads(f.read()))
                 result["M204"] = cmd

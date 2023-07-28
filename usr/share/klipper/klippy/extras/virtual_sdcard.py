@@ -51,6 +51,7 @@ class VirtualSD:
         self.print_file_name_path = "/usr/data/creality/userdata/config/print_file_name.json"
         self.print_first_layer = False
         self.first_layer_stop = False
+        self.count_M204 = 0
     def handle_shutdown(self):
         if self.work_timer is not None:
             self.must_pause_work = True
@@ -67,6 +68,8 @@ class VirtualSD:
                          self.file_position, repr(data[readcount:]))
         self.print_first_layer = False
         self.first_layer_stop = False
+        self.print_stats.power_loss = 0
+        self.count_M204 = 0
     def stats(self, eventtime):
         if self.work_timer is None:
             return False, ""
@@ -128,8 +131,10 @@ class VirtualSD:
         self.work_timer = self.reactor.register_timer(
             self.work_handler, self.reactor.NOW)
     def do_cancel(self):
+        self.print_stats.power_loss = 0
         self.first_layer_stop = False
         self.print_first_layer = False
+        self.count_M204 = 0
         if self.current_file is not None:
             self.do_pause()
             self.current_file.close()
@@ -411,6 +416,7 @@ class VirtualSD:
             else:
                 self.gcode.run_script("G90")
         except Exception as err:
+            self.print_stats.power_loss = 0
             logging.exception("work_handler RESTORE_GCODE_STATE error: %s" % err)
         if power_loss_switch and bl24c16f:
             gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name)
@@ -452,6 +458,7 @@ class VirtualSD:
                         self.gcode.run_script("EEPROM_WRITE_BYTE ADDR=1 VAL=255")
                     self.first_layer_stop = False
                     self.print_first_layer = False
+                    self.count_M204 = 0
                     break
                 lines = data.split('\n')
                 lines[0] = partial_input + lines[0]

@@ -224,6 +224,8 @@ class GCodeDispatch:
     def set_temperature(self, key, value):
         import json
         try:
+            if key == "extruder" and float(value.strip("\n").split("S")[-1]) < 170:
+                return
             if not os.path.exists(self.last_temperature_info):
                 from subprocess import call
                 call("touch %s" % self.last_temperature_info, shell=True)

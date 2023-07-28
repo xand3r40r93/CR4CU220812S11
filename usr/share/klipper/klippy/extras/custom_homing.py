@@ -46,12 +46,17 @@ class CUSTOM_HOMING:
 
             if ('x' not in kin_status['homed_axes']) and ('y' not in kin_status['homed_axes']):
                 self.gcode.respond_info("x and y not in homed", log=False)
-                # pos[0] = 0.
-                # pos[1] = 0.
-                # pos[2] = 0.
-                # toolhead.set_position(pos, homing_axes=[2])
-                # toolhead.manual_move([None, None, self.z_hop], self.z_hop_speed)
-                self.gcode.run_script_from_command('STEPPER_Z_SENEORLESS MOVE_DIST=%d' % self.move_dist)
+                print_stats = self.printer.lookup_object('print_stats', None)
+                if print_stats.power_loss == 1:
+                    pos[0] = 0.
+                    pos[1] = 0.
+                    pos[2] = 0.
+                    toolhead.set_position(pos, homing_axes=[2])
+                    toolhead.manual_move([None, None, self.z_hop], self.z_hop_speed)
+                    self.gcode.respond_info("print stats is power_loss", log=False)
+                else:
+                    self.gcode.run_script_from_command('STEPPER_Z_SENEORLESS MOVE_DIST=%d' % self.move_dist)
+                    self.gcode.respond_info("print stats is normal", log=False)
 
                 toolhead.dwell(.200)
                 if hasattr(toolhead.get_kinematics(), "note_z_not_homed"):
@@ -69,7 +74,7 @@ class CUSTOM_HOMING:
                         toolhead.get_kinematics().note_xy_not_homed()  
                 if hasattr(toolhead.get_kinematics(), "note_z_not_homed"):
                         toolhead.get_kinematics().note_z_not_homed()    
-                toolhead.dwell(.450)      
+                toolhead.dwell(1.0)      
 
             elif ('z' in kin_status['homed_axes']) and (pos[2] < self.z_hop):
                 self.gcode.respond_info("z in homed", log=False)
@@ -96,27 +101,27 @@ class CUSTOM_HOMING:
 
         new_params = {}
         if need_x:
-            self.gcode.respond_info("needx is perform", log=False)
+            self.gcode.respond_info("needx1 is perform", log=False)
             curtime = self.printer.get_reactor().monotonic()
             kin_status = toolhead.get_kinematics().get_status(curtime)
             pos = toolhead.get_position()
-            if ('x' not in kin_status['homed_axes']) and (abs(round(pos[0]) - end_position_x) < 10):
-                if pos[0] < end_position_x:
-                    pos[0] = end_position_x - 10
+            if ('x' in kin_status['homed_axes']) and (abs(round(pos[0]) - self.end_position_x) < 10):
+                if pos[0] < self.end_position_x:
+                    pos[0] = self.end_position_x - 10
                 else:
-                    pos[0] = end_position_x + 10
+                    pos[0] = self.end_position_x + 10
                 toolhead.manual_move([pos[0], None, None], self.xy_hop_speed)
-                toolhead.dwell(.200)
-            if (pos[1] > (self.max_y - 50)) and ('y' in kin_status['homed_axes']):
+                toolhead.dwell(1.0)
+            if ('y' in kin_status['homed_axes']) and (pos[1] > (self.max_y - 50)):
                 toolhead.manual_move([None, self.max_y - 50, None], self.xy_hop_speed)
-                toolhead.dwell(.200)
+                toolhead.dwell(1.0)
             new_params['X'] = '0'
             g28_gcmd = self.gcode.create_gcode_command("G28", "G28", new_params)
             self.prev_G28(g28_gcmd)
             curtime = self.printer.get_reactor().monotonic()
             kin_status = toolhead.get_kinematics().get_status(curtime)
             pos = toolhead.get_position()
-            if max_x == end_position_x:
+            if self.max_x == self.end_position_x:
                 toolhead.manual_move([pos[0] - 10, None, None], self.xy_hop_speed)
             else:
                 toolhead.manual_move([pos[0] + 10, None, None], self.xy_hop_speed)
@@ -125,23 +130,24 @@ class CUSTOM_HOMING:
         if need_y:
             if need_x:
                 toolhead.dwell(2.0)
-            self.gcode.respond_info("needy is perform", log=False)
+            self.gcode.respond_info("needy1 is perform", log=False)
             curtime = self.printer.get_reactor().monotonic()
             kin_status = toolhead.get_kinematics().get_status(curtime)
             pos = toolhead.get_position()
-            if ('y' not in kin_status['homed_axes']) and (abs(round(pos[1]) - end_position_y) < 10):
-                if pos[1] < end_position_y:
-                    pos[1] = end_position_y - 10
+            if ('y' in kin_status['homed_axes']) and (abs(round(pos[1]) - self.end_position_y) < 10):
+                if pos[1] < self.end_position_y:
+                    pos[1] = self.end_position_y - 10
                 else:
-                    pos[1] = end_position_y + 10
+                    pos[1] = self.end_position_y + 10
                 toolhead.manual_move([None, pos[1], None], self.xy_hop_speed)
+                toolhead.dwell(1.0)
             y_params['Y'] = '0'
             g28_gcmd = self.gcode.create_gcode_command("G28", "G28", y_params)
             self.prev_G28(g28_gcmd)
             curtime = self.printer.get_reactor().monotonic()
             kin_status = toolhead.get_kinematics().get_status(curtime)
             pos = toolhead.get_position()
-            if max_y == end_position_y:
+            if self.max_y == self.end_position_y:
                 toolhead.manual_move([None, pos[1] - 10, None], self.xy_hop_speed)
             else:
                 toolhead.manual_move([None, pos[1] + 10, None], self.xy_hop_speed)
@@ -149,7 +155,7 @@ class CUSTOM_HOMING:
         if need_x:
             if need_y:
                 toolhead.dwell(2.0)
-            self.gcode.respond_info("needx is perform", log=False)
+            self.gcode.respond_info("needx2 is perform", log=False)
             curtime = self.printer.get_reactor().monotonic()
             kin_status = toolhead.get_kinematics().get_status(curtime)
             pos = toolhead.get_position()
@@ -164,7 +170,7 @@ class CUSTOM_HOMING:
         if need_y:
             if need_x:
                 toolhead.dwell(2.0)
-            self.gcode.respond_info("needy is perform", log=False)
+            self.gcode.respond_info("needy2 is perform", log=False)
             y_params['Y'] = '0'
             g28_gcmd = self.gcode.create_gcode_command("G28", "G28", y_params)
             self.prev_G28(g28_gcmd)
@@ -203,3 +209,14 @@ class CUSTOM_HOMING:
 
 def load_config(config):
     return CUSTOM_HOMING(config)
+
+
+# [custom_homing]
+# home_xy_position: 110,110
+# x_hop: -10
+# y_hop: 10
+# xy_hop_speed: 50
+# move_speed: 50.0
+# z_hop: 3.0        //这个变量尤其注意，需要和断电续打时Z轴向下移动的数据保持一致
+# z_hop_speed: 5.0
+# z_move_dist: 15

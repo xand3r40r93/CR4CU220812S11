@@ -32,6 +32,7 @@
         { "fault_code":102,  "error":208 },
 
         { "fault_code":2095, "error":800 },
+        { "fault_code":2211, "error":800 },
         { "fault_code":2242, "error":800 },
 
         { "fault_code":2003, "error":801 }

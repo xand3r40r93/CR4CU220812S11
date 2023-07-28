@@ -315,6 +315,9 @@ ota_site=${OTA_FILE_PATH}/${OTA_UNZIP_FILE_NAME}
 # 将U盘的ota压缩包拷贝到/usr/data目录下，解压
 cp -rf ${OTA_FILE} ${OTA_FILE_PATH}
 unzip ${OTA_FILE_PATH}/${OTA_FILE_NAME} -d ${OTA_FILE_PATH}
+if [ $? != 0 ]; then
+    /usr/bin/7z x -p'qH5i25Vd0kiFQl4B' ${OTA_FILE_PATH}/${OTA_FILE_NAME} -o${OTA_FILE_PATH}
+fi
 
 # ota 版本文件地址
 ota_site_config=$ota_site/ota_config.in

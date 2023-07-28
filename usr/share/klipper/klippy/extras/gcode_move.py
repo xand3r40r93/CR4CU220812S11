@@ -319,8 +319,8 @@ class GCodeMove:
             toolhead.set_position([x, y, z, self.last_position[3]], homing_axes=(2,))
             speed = self.speed
             self.last_position[:3] = state['last_position'][:3]
-            logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE G1 X%s Y%s F16000" % (state['last_position'][0], state['last_position'][1]))
-            gcode.run_script("G1 X%s Y%s F16000" % (state['last_position'][0], state['last_position'][1]))
+            logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
+            gcode.run_script("G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE move_with_transform:%s, speed:%s" % (self.last_position, speed))
             self.move_with_transform(self.last_position, speed)
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))

@@ -4,6 +4,9 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 
+# host file
+host-tool-src = tool/host_crc16.c
+
 # Output directory
 OUT=out/
 
@@ -50,6 +53,7 @@ CFLAGS_bootloader.elf = $(BOOTLOADER_CFLAGS) -Wl,--gc-sections
 
 # Default targets
 target-y := $(OUT)klipper.elf
+target-y += $(OUT)hostCrc16.elf
 target-$(CONFIG_BOARD_INFO_CONFIGURE) +=$(OUT)bootloader.elf
 
 all:
@@ -127,6 +131,10 @@ $(OUT)bootloader.elf: $(OBJS_bootloader.elf)
 	@echo " Linking $@"
 	$(Q)$(CC) $(OBJS_bootloader.elf) $(CFLAGS_bootloader.elf) -o $@
 
+$(OUT)hostCrc16.elf: $(host-tool-src)
+	@echo "  Compiling and Linking $@"
+	$(Q)gcc $< -o $@
+	
 ################ Compile time requests
 
 $(OUT)%.o.ctr: $(OUT)%.o

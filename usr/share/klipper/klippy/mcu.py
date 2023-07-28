@@ -988,7 +988,16 @@ class MCU:
         self._is_timeout = True
         logging.info("Timeout with MCU '%s' (eventtime=%f)",
                      self._name, eventtime)
-        code_key = "key506"
+        #code_key = "key506"
+        code_key = "key560"
+        if self._name == "mcu":
+            code_key = 560
+        elif self._name == "nozzle_mcu":
+            code_key = 561
+        elif self._name == "leveling_mcu":
+            code_key = 562
+        elif self._name == "rpi":
+            code_key = 563
         m = """{"code":"%s","msg":"Lost communication with MCU '%s'"}""" % (code_key, self._name)
         self._printer.invoke_shutdown(m)
     def get_status(self, eventtime=None):

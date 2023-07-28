@@ -274,12 +274,15 @@ class ResonanceTester:
     def cmd_SHAPER_CALIBRATE(self, gcmd):
         # Parse parameters
         axis = gcmd.get("AXIS", None)
+        copy_TestAxis_y_to_x = False
         if not axis:
             calibrate_axes = [TestAxis('x'), TestAxis('y')]
         elif axis.lower() not in 'xy':
             raise gcmd.error("Unsupported axis '%s'" % (axis,))
         else:
             calibrate_axes = [TestAxis(axis.lower())]
+            if axis.lower() == "y":
+                copy_TestAxis_y_to_x = True
 
         max_smoothing = gcmd.get_float(
                 "MAX_SMOOTHING", self.max_smoothing, minval=0.05)
@@ -311,6 +314,11 @@ class ResonanceTester:
             csv_name = self.save_calibration_data(
                     'calibration_data', name_suffix, helper, axis,
                     calibration_data[axis], all_shapers)
+            if copy_TestAxis_y_to_x:
+                helper.save_params(configfile, "x", best_shaper.name, best_shaper.freq)
+                csv_name_x = self.save_calibration_data('calibration_data', name_suffix, helper, TestAxis('x'), calibration_data[axis], all_shapers)
+                gcmd.respond_info("copy_TestAxis_y_to_x Recommended shaper_type_%s = %s, shaper_freq_%s = %.1f Hz" % ("x", best_shaper.name, "x", best_shaper.freq))
+                gcmd.respond_info("copy_TestAxis_y_to_x Shaper calibration data written to %s file" % (csv_name_x,))
             gcmd.respond_info(
                     "Shaper calibration data written to %s file" % (csv_name,))
         gcode = self.printer.lookup_object('gcode')

@@ -296,7 +296,9 @@ class VirtualSD:
             f.seek(cur_pos)
             if b.startswith("\n") or b.startswith("\r"):
                 buf = '\n'
-            if (buf.startswith("G1") or buf.startswith("G0") or buf.startswith(";")) and buf.endswith("\n"):
+            if (buf.startswith("G1") or buf.startswith("G0")) and buf.endswith("\n"):
+                if ";" in buf:
+                    buf = buf.split(";")[0]+"\n"
                 break
         return buf
     def getXYZE(self, file_path, file_position):
@@ -573,7 +575,7 @@ class VirtualSD:
             next_file_position = self.file_position + len(line) + 1
             self.next_file_position = next_file_position
             try:
-                if power_loss_switch and bl24c16f and self.count_G1 >= 20 and self.count_line % 100 == 0:
+                if power_loss_switch and bl24c16f and (self.layer > 2 or gcode_move.last_position[2] > 3) and self.count_line % 99 == 0:
                     base_position_e = round(list(gcode_move.base_position)[-1], 2)
                     pos = bl24c16f.eepromReadHeader()
                     if eepromState:
@@ -598,9 +600,9 @@ class VirtualSD:
                             self.gcode.run_script("EEPROM_WRITE_BYTE ADDR=0 VAL=%d" % pos)
                         # logging.info("eepromWriteCount:%d, pos:%d" % (self.eepromWriteCount, pos))
                     self.eepromWriteCount += 1
-                if power_loss_switch and bl24c16f and self.count_G1 == 19:
+                if power_loss_switch and bl24c16f and (self.layer == 3 or self.count_G1 == 19):
                     gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
-                if power_loss_switch and bl24c16f and self.count_line % 999 == 0:
+                if power_loss_switch and bl24c16f and (self.layer > 2 or gcode_move.last_position[2] > 3) and self.count_line % 999 == 0:
                     gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
                 if line.startswith("G1") and "E" in line:
                     try:
@@ -634,7 +636,7 @@ class VirtualSD:
                     for layer_key in LAYER_KEYS:
                         if ";LAYER_COUNT:" in layer_key:
                             break
-                        if line.startswith(layer_key):
+                        if line.startswith(layer_key) and os.path.exists("/tmp/camera_main"):
                             if layer_count % int(interval) == 0:
                                 if location:
                                     cmd_wait_for_stepper = "M400"

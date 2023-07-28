@@ -81,7 +81,7 @@ compare_version()
         tmp=${fw_bin%.*}
         orig_fw_version=${version:18:3}
         target_fw_version=${tmp:18:3}
-        if [ "$invalid_fw_version" = "true" -o $target_fw_version -gt $orig_fw_version ]; then
+        if [ "$invalid_fw_version" = "true" -o $target_fw_version -ne $orig_fw_version ]; then
             ret_fw_bin=$fw_dir/$fw_bin
             write_log "old version: $version, will update: $ret_fw_bin"
         fi

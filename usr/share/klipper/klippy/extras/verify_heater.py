@@ -86,7 +86,12 @@ class HeaterCheck:
     def heater_fault(self):
         msg = "Heater %s not heating at expected rate" % (self.heater_name,)
         logging.error(msg)
-        code_key = "key507"
+        #code_key = "key507"
+        code_key = "key564"
+        if self.heater_name == "extruder":
+            code_key = "key564"
+        elif self.heater_name == "heater_bed":
+            code_key = "key565"
         m = """{"code":"%s","msg":"Heater %s not heating at expected rate"}""" % (code_key, self.heater_name)
         try:
             gcode = self.printer.lookup_object('gcode')

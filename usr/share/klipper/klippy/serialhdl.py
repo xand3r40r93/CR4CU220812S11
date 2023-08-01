@@ -184,8 +184,15 @@ class SerialReader:
         logging.info("%sStarting serial connect", self.warn_prefix)
         start_time = self.reactor.monotonic()
         while 1:
-            if self.reactor.monotonic() > start_time + 90.:
-                self._error("Unable to connect")
+            if self.reactor.monotonic() > start_time + 50.:
+                key = 343
+                if "'mcu'" in self.warn_prefix:
+                    key = 343
+                elif "'nozzle_mcu'" in self.warn_prefix:
+                    key = 344
+                elif "'leveling_mcu'" in self.warn_prefix:
+                    key = 345
+                raise error("""{"code": "key%s", "msg": "Unable to connect %s", "values":["%s"]}""" % (key, self.warn_prefix, self.warn_prefix))
             try:
                 serial_dev = serial.Serial(baudrate=baud, timeout=0,
                                            exclusive=True)

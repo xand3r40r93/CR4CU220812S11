@@ -18,6 +18,9 @@
         { "fault_code":3001, "error":2 },
         { "fault_code":3002, "error":2 },
 
+        { "fault_code":110, "error":3 },
+        { "fault_code":111, "error":3 },
+        { "fault_code":112, "error":3 },
         { "fault_code":2506, "error":3 },
         { "fault_code":2560, "error":3 },
         { "fault_code":2561, "error":3 },

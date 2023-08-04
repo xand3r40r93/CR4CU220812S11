@@ -46,7 +46,7 @@ class VirtualSD:
         self.count_line = 0
         self.do_resume_status = False
         self.eepromWriteCount = 1
-        self.fan_state = {}
+        self.fan_state = ""
         self.gcode_layer_path = "/usr/data/creality/userdata/config/gcode_layer.json"
         self.user_print_refer_path = "/usr/data/creality/userdata/config/user_print_refer.json"
         self.print_file_name_path = "/usr/data/creality/userdata/config/print_file_name.json"
@@ -77,7 +77,6 @@ class VirtualSD:
         self.first_layer_stop = False
         self.print_stats.power_loss = 0
         self.count_M204 = 0
-        self.fan_state = {}
     def stats(self, eventtime):
         if self.work_timer is None:
             return False, ""
@@ -147,7 +146,6 @@ class VirtualSD:
         self.count_M204 = 0
         self.layer = 0
         self.layer_count = 0
-        self.fan_state = {}
         self.resume_print_speed()
         if self.current_file is not None:
             self.do_pause()
@@ -425,7 +423,7 @@ class VirtualSD:
     def work_handler(self, eventtime):
         reportInformation("Start print, filename:%s" % self.current_file.name)
         logging.info("work_handler start print, filename:%s" % self.current_file.name)
-        # self.print_stats.note_start()
+        self.print_stats.note_start()
         import time
         from subprocess import check_output
         self.count_line = 0
@@ -467,7 +465,6 @@ class VirtualSD:
                             bl24c16f.setEepromDisable()
             eepromState = bl24c16f.checkEepromFirstEnable() if power_loss_switch and bl24c16f else True
             if power_loss_switch and bl24c16f and not self.do_resume_status and sameFileName and not eepromState and self.is_continue_print:
-                self.print_stats.note_start(info_path=self.print_file_name_path)
                 self.is_continue_print = False
                 logging.info("power_loss start do_resume...")
                 logging.info("power_loss start print, filename:%s" % self.current_file.name)
@@ -528,7 +525,7 @@ class VirtualSD:
             logging.exception("virtual_sdcard seek")
             self.work_timer = None
             return self.reactor.NEVER
-        self.print_stats.note_start()
+        # self.print_stats.note_start()
         gcode_mutex = self.gcode.get_mutex()
         partial_input = ""
         lines = []
@@ -561,7 +558,6 @@ class VirtualSD:
                     self.count_M204 = 0
                     self.layer = 0
                     self.layer_count = 0
-                    self.fan_state = {}
                     break
                 lines = data.split('\n')
                 lines[0] = partial_input + lines[0]
@@ -605,9 +601,9 @@ class VirtualSD:
                         # logging.info("eepromWriteCount:%d, pos:%d" % (self.eepromWriteCount, pos))
                     self.eepromWriteCount += 1
                 if power_loss_switch and bl24c16f and self.count_G1 == 19:
-                    gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state, filament_used=self.print_stats.filament_used, last_print_duration=self.print_stats.print_duration)
+                    gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
                 if power_loss_switch and bl24c16f and (self.layer > 2 or gcode_move.last_position[2] > 3) and self.count_line % 999 == 0:
-                    gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state, filament_used=self.print_stats.filament_used, last_print_duration=self.print_stats.print_duration)
+                    gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
                 if line.startswith("G1") and "E" in line:
                     try:
                         E_str = line.split(" ")[-1]
@@ -616,15 +612,10 @@ class VirtualSD:
                     except Exception as err:
                         pass
                 elif line.startswith("M106"):
-                    M106_line = line.strip("\r").strip("\n")
-                    if M106_line.startswith("M106 S"):
-                        self.fan_state["M106 S"] = M106_line
-                    elif M106_line.startswith("M106 P0"):
-                        self.fan_state["M106 P0"] = M106_line
-                    elif M106_line.startswith("M106 P1"):
-                        self.fan_state["M106 P1"] = M106_line
-                    elif M106_line.startswith("M106 P2"):
-                        self.fan_state["M106 P2"] = M106_line
+                    self.fan_state = line.strip("\r").strip("\n")
+                    if power_loss_switch and bl24c16f:
+                        gcode_move.recordPrintFileName(self.print_file_name_path, self.current_file.name, fan_state=self.fan_state)
+                    self.fan_state = ""
                 elif line.startswith("END_PRINT"):
                     if os.path.exists(self.print_file_name_path):
                         os.remove(self.print_file_name_path)

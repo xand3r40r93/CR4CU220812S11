@@ -31,14 +31,14 @@ command to reload the config and restart the host software.
 
 message_mcu_connect_error = """
 Once the underlying issue is corrected, use the
-'FIRMWARE_RESTART' command to reset the firmware, reload the
+"FIRMWARE_RESTART" command to reset the firmware, reload the
 config, and restart the host software.
 Error configuring printer
 """
 
 message_shutdown = """
 Once the underlying issue is corrected, use the
-'FIRMWARE_RESTART' command to reset the firmware, reload the
+"FIRMWARE_RESTART" command to reset the firmware, reload the
 config, and restart the host software.
 Printer is shutdown
 """

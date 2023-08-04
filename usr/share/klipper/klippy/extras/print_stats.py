@@ -17,7 +17,6 @@ class PrintStats:
             desc=self.cmd_SET_PRINT_STATS_INFO_help)
         # G28 down 12mm flag
         self.power_loss = 0
-        self.print_duration = 0
         self.z_pos_filepath = "/usr/data/creality/userdata/config/z_pos.json"
         self.z_pos = self.get_z_pos()
     def get_z_pos(self):
@@ -38,35 +37,17 @@ class PrintStats:
     def set_current_file(self, filename):
         self.reset()
         self.filename = filename
-    def note_start(self, info_path=""):
+    def note_start(self):
         curtime = self.reactor.monotonic()
-        # if self.print_start_time is None:
-        #     self.print_start_time = curtime
-        # elif self.last_pause_time is not None:
-        #     # Update pause time duration
-        #     pause_duration = curtime - self.last_pause_time
-        #     self.prev_pause_duration += pause_duration
-        #     self.last_pause_time = None
-        # Reset last e-position
-        gc_status = self.gcode_move.get_status(curtime)
-        ret = {}
-        if info_path and os.path.exists(info_path):
-            try:
-                with open(info_path, "r") as f:
-                    ret = json.loads(f.read())
-                    self.filament_used = ret.get("filament_used", 0)
-            except Exception as err:
-                pass
         if self.print_start_time is None:
-            if info_path and ret and ret.get("last_print_duration"):
-                self.print_start_time = curtime - int(ret.get("last_print_duration", 0))
-            else:
-                self.print_start_time = curtime
+            self.print_start_time = curtime
         elif self.last_pause_time is not None:
             # Update pause time duration
             pause_duration = curtime - self.last_pause_time
             self.prev_pause_duration += pause_duration
             self.last_pause_time = None
+        # Reset last e-position
+        gc_status = self.gcode_move.get_status(curtime)
         self.last_epos = gc_status['position'].e
         self.state = "printing"
         self.error_message = ""
@@ -137,7 +118,6 @@ class PrintStats:
                 # Track duration prior to extrusion
                 self.init_duration = self.total_duration - time_paused
         print_duration = self.total_duration - self.init_duration - time_paused
-        self.print_duration = print_duration
         return {
             'filename': self.filename,
             'total_duration': self.total_duration,

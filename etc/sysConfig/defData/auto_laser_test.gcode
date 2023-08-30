@@ -2,7 +2,7 @@
 ; Laser test start x = 130
 ; Laser test start y = 148
 ; Laser test len x = 40
-; Laser test len y = 2.4
+; Laser test len y = 4
 
 M104 S220
 M140 S60.000000
@@ -43,7 +43,6 @@ G1 E-0.8 F3600
 G1 Y151.7 X150 F1200
 G1 Z.8 F600
 
-
 G1 Y151.7 X145 F1200
 G1 E0.8 F3600
 G1 Z.2 F600
@@ -51,8 +50,8 @@ G1 Y151.7 X155 E.5 F1200
 G1 Z.4 F600
 G1 Y151.7 X145 E.5 F1200
 
-
 G1 E-1.5 F3600
+M400
 
 M104 S0
 M140 S0

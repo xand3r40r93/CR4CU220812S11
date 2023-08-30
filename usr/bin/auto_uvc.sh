@@ -182,16 +182,6 @@ sync && echo 3 > /proc/sys/vm/drop_caches
 
 case "${ACTION}" in
 add)
-        MODEL=$(get_sn_mac.sh model)
-        if [ "x${MODEL}" = "xF003" ]; then
-            MAIN_PIC_WIDTH=1920
-            MAIN_PIC_HEIGHT=1080
-            SUB_PIC_WIDTH=1920
-            SUB_PIC_HEIGHT=1080
-            echo_console "MODEL = ${MODEL}"
-            [ "x$(ps | grep '/usr/bin/cam_app' | grep -v grep)" != "x" ] && echo_console "already have a camera" && exit 1
-        fi
-
         start_uvc ${MDEV}
         ;;
 remove)

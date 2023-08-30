@@ -181,6 +181,22 @@ class AccelCommandHelper:
         if len(name_parts) == 1:
             if self.name == "adxl345" or not config.has_section("adxl345"):
                 self.register_commands(None)
+        webhooks = self.printer.lookup_object('webhooks')
+        webhooks.register_endpoint("getAdxl345Status",
+                                   self.get_adxl345_status)
+    def get_adxl345_status(self, web_request):
+        adxl345_is_exist = True
+        try:
+            aclient = self.chip.start_internal_client()
+            self.printer.lookup_object('toolhead').dwell(1.)
+            aclient.finish_measurements()
+            values = aclient.get_samples()
+        except Exception as err:
+            logging.error(err)
+            values = ""
+        if not values:
+            adxl345_is_exist = False
+        web_request.send({"adxl345_is_exist": adxl345_is_exist})
     def register_commands(self, name):
         # Register commands
         gcode = self.printer.lookup_object('gcode')

@@ -16,24 +16,12 @@ jpeg_display()
     model=$(get_sn_mac.sh model)
 
     case $model in
-        "CR-10 H1")
-            logofile=${theme}_portrait_rot0_${width}x${height}.jpg
-            ;;
-
         "CR-K1")
             logofile=${theme}_landscape_rot180_${width}x${height}.jpg
             ;;
 
         "CR-K1 Max")
             logofile=${theme}_landscape_rot180_${width}x${height}.jpg
-            ;;
-
-        "Nebula Pad")
-            logofile=${theme}_portrait_rot270_${width}x${height}.jpg
-            ;;
-
-        "F003")
-            logofile=${theme}_portrait_rot270_${width}x${height}.jpg
             ;;
 
         *)

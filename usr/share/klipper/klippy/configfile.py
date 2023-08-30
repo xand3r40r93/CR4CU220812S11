@@ -301,13 +301,11 @@ class PrinterConfig:
         for section_name in fileconfig.sections():
             section = section_name.lower()
             if section not in valid_sections and section not in objects:
-                raise error("Section '%s' is not a valid config section"
-                            % (section,))
+                raise error("""{"code":"key341", "msg":"Section '%s' is not a valid config section", "values":["%s"]}""" % (section, section))
             for option in fileconfig.options(section_name):
                 option = option.lower()
                 if (section, option) not in access_tracking:
-                    raise error("Option '%s' is not valid in section '%s'"
-                                % (option, section))
+                    raise error("""{"code":"key342", "msg":"Option '%s' is not valid in section '%s'", "values":["%s", "%s"]}""" % (option, section, option, section))
         # Setup get_status()
         self._build_status(config)
     def log_config(self, config):

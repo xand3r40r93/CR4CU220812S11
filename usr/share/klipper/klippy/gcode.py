@@ -289,8 +289,8 @@ class GCodeDispatch:
     extended_r1 = re.compile(
         r'^\s*(?:N[0-9]+\s*)?'
         r'(?P<cmd>[a-zA-Z_][a-zA-Z0-9_]+)(?:\s+|$)'
-        r'(?P<args>[^\/*;]*?)'
-        r'\s*(?:[\/*;].*)?$')
+        r'(?P<args>[^\|*;]*?)'
+        r'\s*(?:[\|*;].*)?$')
     def _get_extended_params(self, gcmd):
         if gcmd.get_commandline().startswith("SDCARD_PRINT_FILE"):
             # Support filename contain '#'

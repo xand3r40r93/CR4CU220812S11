@@ -874,6 +874,10 @@ class Creality(BaseSlicer):
                 return max(matches)
         return self._parse_max_float(r"G1\sZ\d+\.\d*\sF", self.footer_data)
 
+    def parse_layer_count(self) -> Optional[int]:
+        return _regex_find_int(
+            r";LAYER_COUNT\:(\d+)", self.header_data)
+
     def parse_filament_total(self) -> Optional[float]:
         filament_total = _regex_find_first(
             r";Filament used:(\d+\.?\d*)m", self.footer_data)

@@ -210,30 +210,37 @@ class GCodeMove:
             for pos, delta in enumerate(move_delta):
                 self.last_position[pos] += delta
             self.move_with_transform(self.last_position, speed)
-    def recordPrintFileName(self, path, file_name, fan_state=""):
+    def recordPrintFileName(self, path, file_name, fan_state={}, filament_used=0, last_print_duration=0):
         import json, os
         fan = {}
         M204_accel = ""
+        old_filament_used = 0
+        old_last_print_duration = 0
         if os.path.exists(path):
             with open(path, "r") as f:
                 result = (json.loads(f.read()))
                 # fan = result.get("fan_state", "")
                 fan = result.get("fan_state", {})
                 M204_accel = result.get("M204", "")
-        if fan_state.startswith("M106 S"):
-            fan["M106 S"] = fan_state
-        elif fan_state.startswith("M106 P0"):
-            fan["M106 P0"] = fan_state
-        elif fan_state.startswith("M106 P1"):
-            fan["M106 P1"] = fan_state
-        elif fan_state.startswith("M106 P2"):
-            fan["M106 P2"] = fan_state
-        # if fan_state:
-        #     fan.append(fan_state)
-        # if fan_state and fan_state != fan:
-        #     state = fan_state
-        # else:
-        #     state = fan
+                old_filament_used = result.get("filament_used", 0)
+                old_last_print_duration = result.get("last_print_duration", 0)
+        if fan_state.get("M106 S") and fan_state.get("M106 S", "") != fan.get("M106 S", ""):
+            fan["M106 S"] = fan_state.get("M106 S")
+        elif fan_state.get("M106 P0") and fan_state.get("M106 P0", "") != fan.get("M106 P0", ""):
+            fan["M106 P0"] = fan_state.get("M106 P0")
+        elif fan_state.get("M106 P1")  and fan_state.get("M106 P1", "") != fan.get("M106 P1", ""):
+            fan["M106 P1"] = fan_state.get("M106 P1")
+        elif fan_state.get("M106 P2")  and fan_state.get("M106 P2", "") != fan.get("M106 P2", ""):
+            fan["M106 P2"] = fan_state.get("M106 P2")
+
+        if filament_used and filament_used != old_filament_used:
+            pass
+        else:
+            filament_used = old_filament_used
+        if last_print_duration and last_print_duration != old_last_print_duration:
+            pass
+        else:
+            last_print_duration = old_last_print_duration
         data = {
             'file_path': file_name,
             'absolute_coord': self.absolute_coord,
@@ -241,6 +248,8 @@ class GCodeMove:
             # 'fan_state': state,
             'fan_state': fan,
             'M204': M204_accel,
+            'filament_used': filament_used,
+            'last_print_duration': last_print_duration
         }
         with open(path, "w") as f:
             f.write(json.dumps(data))
@@ -263,6 +272,8 @@ class GCodeMove:
                 "fan_state": {},
                 "variable_z_safe_pause": 0,
                 "M204": "",
+                "filament_used": 0,
+                "last_print_duration": 0
             }
             import os, json
             base_position_e = -1

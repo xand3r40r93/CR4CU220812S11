@@ -233,6 +233,11 @@ class PrinterHoming:
         gcode = self.printer.lookup_object('gcode')
         gcode.register_command('G28', self.cmd_G28)
         gcode.register_command('STEPPER_Z_SENEORLESS', self.cmd_STEPPER_Z_SENEORLESS)
+        self.probe_type = ""
+        if config.has_section('prtouch_v2'):
+            self.probe_type = "prtouch_v2"
+        elif config.has_section('bltouch'):
+            self.probe_type = "bltouch"
     def manual_home(self, toolhead, endstops, pos, speed,
                     triggered, check_triggered):
         hmove = HomingMove(self.printer, endstops, toolhead)
@@ -249,8 +254,10 @@ class PrinterHoming:
         endstops = [(mcu_probe, "probe")]
         hmove = HomingMove(self.printer, endstops)
         try:
-            epos = self.printer.lookup_object('probe').mcu_probe.run_G29_Z()
-            # epos = hmove.homing_move(pos, speed, probe_pos=True)
+            if self.probe_type == "prtouch_v2":
+                epos = self.printer.lookup_object('probe').mcu_probe.run_G29_Z()
+            else:
+                epos = hmove.homing_move(pos, speed, probe_pos=True)
         except self.printer.command_error:
             if self.printer.is_shutdown():
                 raise self.printer.command_error(
@@ -291,13 +298,15 @@ class PrinterHoming:
         homing_state.set_axes(axes)
         kin = self.printer.lookup_object('toolhead').get_kinematics()
         try:
-            for a in axes:
-                if a == 0 or a == 1:
-                    homing_state.set_axes([a])
-                    kin.home(homing_state)
-                else:
-                    self.printer.lookup_object('probe').mcu_probe.run_G28_Z()
-            # kin.home(homing_state)
+            if self.probe_type == "prtouch_v2":
+                for a in axes:
+                    if a == 0 or a == 1:
+                        homing_state.set_axes([a])
+                        kin.home(homing_state)
+                    else:
+                        self.printer.lookup_object('probe').mcu_probe.run_G28_Z()
+            else:
+                kin.home(homing_state)
         except self.printer.command_error:
             if self.printer.is_shutdown():
                 raise self.printer.command_error(

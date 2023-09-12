@@ -40,6 +40,7 @@ class GCodeMove:
         gcode.register_command('M114', self.cmd_M114, True)
         gcode.register_command('GET_POSITION', self.cmd_GET_POSITION, True,
                                desc=self.cmd_GET_POSITION_help)
+        gcode.register_command('SET_POSITION', self.cmd_SET_POSITION, True, desc=self.cmd_SET_POSITION_help)
         self.Coord = gcode.Coord
         # G-Code coordinate manipulation
         self.absolute_coord = self.absolute_extrude = True
@@ -312,13 +313,13 @@ class GCodeMove:
                 logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE fan fan_state:%s" % str(state["fan_state"]))
                 for key in state["fan_state"]:
                     logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE fan set fan:%s#" % str(state["fan_state"].get(key, "")))
-                    gcode.run_script(state["fan_state"].get(key, ""))
-                # gcode.run_script(state["fan_state"])
+                    gcode.run_script_from_command(state["fan_state"].get(key, ""))
+                # gcode.run_script_from_command(state["fan_state"])
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE before G28 X Y self.last_position:%s" % str(self.last_position))
-            gcode.run_script("G28 X Y")
+            gcode.run_script_from_command("G28 X Y")
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE after G28 X Y self.last_position:%s" % str(self.last_position))
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE before BED_MESH_PROFILE LOAD='default'")
-            gcode.run_script('BED_MESH_PROFILE LOAD="default"')
+            gcode.run_script_from_command('BED_MESH_PROFILE LOAD="default"')
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE after BED_MESH_PROFILE LOAD='default'")
             x = self.last_position[0]
             y = self.last_position[1]
@@ -331,16 +332,16 @@ class GCodeMove:
             speed = self.speed
             self.last_position[:3] = state['last_position'][:3]
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
-            gcode.run_script("G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
+            gcode.run_script_from_command("G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE move_with_transform:%s, speed:%s" % (self.last_position, speed))
             self.move_with_transform(self.last_position, speed)
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
-            gcode.run_script("G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
+            gcode.run_script_from_command("G1 X%s Y%s F3000" % (state['last_position'][0], state['last_position'][1]))
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE M400")
-            gcode.run_script("M400")
+            gcode.run_script_from_command("M400")
             if state["M204"]:
                 logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE SET M204:%s#" % state["M204"])
-                gcode.run_script(state["M204"])
+                gcode.run_script_from_command(state["M204"])
             self.absolute_extrude = state['absolute_extrude']
             logging.info("power_loss cmd_CX_RESTORE_GCODE_STATE done")
         except Exception as err:
@@ -411,5 +412,24 @@ class GCodeMove:
                           % (mcu_pos, stepper_pos, kin_pos, toolhead_pos,
                              gcode_pos, base_pos, homing_pos))
 
+    cmd_SET_POSITION_help = (
+        "SET_POSITION information on the current location of the toolhead")
+    def cmd_SET_POSITION(self, gcmd):
+        toolhead = self.printer.lookup_object('toolhead', None)
+        if toolhead is None:
+            raise gcmd.error("""{"code": "key283", "msg": ""Printer not ready"}""")
+        position = toolhead.get_position()
+        x = position[0]
+        y = position[1]
+        z = position[2]
+        e = position[3]
+        X = gcmd.get_float('X', x)
+        Y = gcmd.get_float('Y', y)
+        Z = gcmd.get_float('Z', z)
+        E = gcmd.get_float('E', e)
+        toolhead.set_position([X, Y, Z, E], homing_axes=(2,))
+        position = toolhead.get_position()
+        msg = "toolhead get_position X:%s, Y:%s, Z:%s, E:%s" % (position[0], position[1], position[2], position[3])
+        gcmd.respond_info(msg)
 def load_config(config):
     return GCodeMove(config)

@@ -16,11 +16,11 @@ jpeg_display()
     model=$(get_sn_mac.sh model)
 
     case $model in
-        "CR-K1")
+        "CR-K1" | "K1C")
             logofile=${theme}_landscape_rot180_${width}x${height}.jpg
             ;;
 
-        "CR-K1 Max")
+        "CR-K1 Max" | "K1 Max SE")
             logofile=${theme}_landscape_rot180_${width}x${height}.jpg
             ;;
 

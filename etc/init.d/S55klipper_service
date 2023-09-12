@@ -99,7 +99,17 @@ copy_config()
             gcode_dir=K1
             ;;
 
-        "CR-K1 Max")
+        "K1C")
+            if [ "$board" = "CR4CU220812S12" ]; then
+                config_dir=K1C_CR4CU220812S12
+            else
+                config_dir=
+            fi
+
+            gcode_dir=K1
+            ;;
+
+        "CR-K1 Max" | "K1 Max SE")
             if [ "$board" = "CR4CU220812S11" ]; then
                 config_dir=K1_MAX_CR4CU220812S11
             elif [ "$board" = "CR4CU220812S12" ]; then
